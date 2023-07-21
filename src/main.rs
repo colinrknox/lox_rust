@@ -111,5 +111,14 @@ fn run(code: String) {
 }
 
 fn scan_tokens(code: String) -> Vec<Token> {
-    Vec::new()
+    let mut tokens: Vec<Token> = Vec::new();
+    let mut line: usize = 1;
+    let mut start: usize = 0;
+    let mut current: usize = 0;
+    while current < code.len() {
+        current += 1;
+    }
+
+    tokens.push(Token::new(TokenType::EOF, "".to_string(), line));
+    return tokens;
 }
