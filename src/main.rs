@@ -152,7 +152,7 @@ impl Scanner {
     }
 
     fn scan_tokens(&mut self) -> &Vec<Token> {
-        while !self.is_finished(self.code.len()) {
+        while !self.is_finished() {
             self.start = self.current;
             self.scan_token();
         }
@@ -188,6 +188,7 @@ impl Scanner {
             '/' => Token::from_tokentype(TokenType::Slash),
             '>' => {
                 if self.r#match('=') {
+                    self.current += 1;
                     Token::from_tokentype(TokenType::GreaterEqual)
                 } else {
                     Token::from_tokentype(TokenType::Greater)
@@ -195,6 +196,7 @@ impl Scanner {
             }
             '<' => {
                 if self.r#match('=') {
+                    self.current += 1;
                     Token::from_tokentype(TokenType::LessEqual)
                 } else {
                     Token::from_tokentype(TokenType::Less)
@@ -202,6 +204,7 @@ impl Scanner {
             }
             '=' => {
                 if self.r#match('=') {
+                    self.current += 1;
                     Token::from_tokentype(TokenType::EqualEqual)
                 } else {
                     Token::from_tokentype(TokenType::Equal)
@@ -209,6 +212,7 @@ impl Scanner {
             }
             '!' => {
                 if self.r#match('=') {
+                    self.current += 1;
                     Token::from_tokentype(TokenType::BangEqual)
                 } else {
                     Token::from_tokentype(TokenType::Bang)
@@ -218,13 +222,11 @@ impl Scanner {
         });
     }
 
-    fn r#match(&mut self, expected: char) -> bool {
+    fn r#match(&self, expected: char) -> bool {
         let curr = self.code.as_bytes()[self.current] as char;
         if self.is_finished() || curr != expected {
             return false;
         }
-
-        self.current += 1;
         return true;
     }
     fn advance(&mut self) -> char {
