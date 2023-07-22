@@ -1,4 +1,5 @@
-use std::{env, fmt, fs};
+use core::fmt;
+use std::{env, fs, io};
 
 #[derive(Debug)]
 enum TokenType {
@@ -47,17 +48,19 @@ enum TokenType {
     EOF,
 }
 
-struct Token {
+struct Token<T: fmt::Display> {
     r#type: TokenType,
     lexeme: String,
+    literal: Option<T>,
     line: usize,
 }
 
-impl Token {
-    fn new(r#type: TokenType, lexeme: String, line: usize) -> Token {
+impl<T> Token<T> {
+    fn new(r#type: TokenType, lexeme: String, literal: Option<T>, line: usize) -> Token<T> {
         Token {
             r#type,
             lexeme,
+            literal,
             line,
         }
     }
@@ -69,9 +72,13 @@ impl fmt::Display for TokenType {
     }
 }
 
-impl fmt::Display for Token {
+impl<T> fmt::Display for Token<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {} {}", self.r#type, self.lexeme, self.line)
+        write!(
+            f,
+            "{} {} {:?} {}",
+            self.r#type, self.lexeme, self.literal, self.line
+        )
     }
 }
 
@@ -94,7 +101,7 @@ fn run_file(file: &String) {
 fn run_prompt() {
     loop {
         print!("> ");
-        if let Ok(line) = std::io::read_to_string(std::io::stdin()) {
+        if let Ok(line) = io::read_to_string(io::stdin()) {
             run(line);
         } else {
             println!("Error: invalid expression");
@@ -103,22 +110,60 @@ fn run_prompt() {
 }
 
 fn run(code: String) {
-    let mut tokens: Vec<Token> = scan_tokens(code);
+    let tokens: Vec<Token> = scan_tokens(code);
 
     for t in tokens {
         println!("{}", t);
     }
 }
 
-fn scan_tokens(code: String) -> Vec<Token> {
-    let mut tokens: Vec<Token> = Vec::new();
-    let mut line: usize = 1;
-    let mut start: usize = 0;
-    let mut current: usize = 0;
-    while current < code.len() {
-        current += 1;
+struct Scanner {
+    tokens: Vec<Token>,
+    line: usize,
+    start: usize,
+    current: usize,
+}
+
+impl Scanner {
+    fn new() -> Scanner {
+        Scanner {
+            tokens: Vec::new(),
+            line: 0,
+            start: 0,
+            current: 0,
+        }
     }
 
-    tokens.push(Token::new(TokenType::EOF, "".to_string(), line));
-    return tokens;
+    fn scan_tokens(&mut self, code: String) -> Vec<Token> {
+        while !self.is_finished(code.len()) {
+            self.start = self.current;
+            self.scan_token();
+        }
+
+        self.tokens
+            .push(Token::new(TokenType::EOF, "".to_string(), None, self.line));
+        return self.tokens;
+    }
+
+    fn scan_token(&mut self) {}
+
+    fn is_finished(&self, file_length: usize) -> bool {
+        self.current > file_length
+    }
+}
+
+fn scan<T>(code: String) -> Token<T> {
+    let c = code.as_bytes()[0];
+    match c {
+        '(' => add_token(TokenType::LeftParen),
+        _ => println!("unknown token"),
+    }
+}
+
+fn add_token(r#type: TokenType) -> Token {
+    add_token(r#type, None)
+}
+
+fn add_token(r#type: TokenType, literal: Option<T>) -> Token<T> {
+    Token::new(r#type, "".to_string(), literal, 0)
 }
