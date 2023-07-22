@@ -48,21 +48,34 @@ enum TokenType {
     EOF,
 }
 
-struct Token<T: fmt::Display> {
+struct Token {
     r#type: TokenType,
     lexeme: String,
-    literal: Option<T>,
+    literal: Option<Box<dyn std::any::Any>>,
     line: usize,
 }
 
-impl<T> Token<T> {
-    fn new(r#type: TokenType, lexeme: String, literal: Option<T>, line: usize) -> Token<T> {
+impl Token {
+    fn new(
+        r#type: TokenType,
+        lexeme: String,
+        literal: Option<Box<dyn std::any::Any>>,
+        line: usize,
+    ) -> Token {
         Token {
             r#type,
             lexeme,
             literal,
             line,
         }
+    }
+
+    fn from_tokentype(r#type: TokenType) -> Token {
+        Self::from_type_literal(r#type, None)
+    }
+
+    fn from_type_literal(r#type: TokenType, literal: Option<Box<dyn std::any::Any>>) -> Token {
+        Self::new(r#type, "".to_string(), literal, 0)
     }
 }
 
@@ -72,7 +85,7 @@ impl fmt::Display for TokenType {
     }
 }
 
-impl<T> fmt::Display for Token<T> {
+impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -109,61 +122,77 @@ fn run_prompt() {
     }
 }
 
-fn run(code: String) {
-    let tokens: Vec<Token> = scan_tokens(code);
+fn run(code: String) -> Result<(), String> {
+    let mut scanner = Scanner::new(code);
+    let tokens: &Vec<Token> = scanner.scan_tokens();
 
     for t in tokens {
         println!("{}", t);
     }
+    Ok(())
 }
 
 struct Scanner {
     tokens: Vec<Token>,
+    code: String,
     line: usize,
     start: usize,
     current: usize,
 }
 
 impl Scanner {
-    fn new() -> Scanner {
+    fn new(code: String) -> Scanner {
         Scanner {
             tokens: Vec::new(),
+            code,
             line: 0,
             start: 0,
             current: 0,
         }
     }
 
-    fn scan_tokens(&mut self, code: String) -> Vec<Token> {
-        while !self.is_finished(code.len()) {
+    fn scan_tokens(&mut self) -> &Vec<Token> {
+        while !self.is_finished(self.code.len()) {
             self.start = self.current;
             self.scan_token();
         }
 
         self.tokens
             .push(Token::new(TokenType::EOF, "".to_string(), None, self.line));
-        return self.tokens;
+        return &self.tokens;
     }
 
-    fn scan_token(&mut self) {}
+    fn scan_token(&mut self) {
+        let c = self.advance();
+        if c == ' ' || c == '\r' || c == '\t' {
+            return;
+        }
+        if c == '\n' {
+            self.line += 1;
+            return;
+        }
+        self.tokens.push(match c {
+            '(' => Token::from_tokentype(TokenType::LeftParen),
+            ')' => Token::from_tokentype(TokenType::RightParen),
+            '{' => Token::from_tokentype(TokenType::LeftBrace),
+            '}' => Token::from_tokentype(TokenType::RightBrace),
+            ',' => Token::from_tokentype(TokenType::Comma),
+            '.' => Token::from_tokentype(TokenType::Dot),
+            '-' => Token::from_tokentype(TokenType::Minus),
+            '+' => Token::from_tokentype(TokenType::Plus),
+            '*' => Token::from_tokentype(TokenType::Star),
+            ';' => Token::from_tokentype(TokenType::Semicolon),
+            _ => Token::from_tokentype(TokenType::EOF),
+        });
+    }
+
+    fn advance(&mut self) -> char {
+        let res = self.code.as_bytes()[self.current] as char;
+        self.current += 1;
+        return res;
+    }
 
     fn is_finished(&self, file_length: usize) -> bool {
         self.current > file_length
     }
-}
-
-fn scan<T>(code: String) -> Token<T> {
-    let c = code.as_bytes()[0];
-    match c {
-        '(' => add_token(TokenType::LeftParen),
-        _ => println!("unknown token"),
-    }
-}
-
-fn add_token(r#type: TokenType) -> Token {
-    add_token(r#type, None)
-}
-
-fn add_token(r#type: TokenType, literal: Option<T>) -> Token<T> {
-    Token::new(r#type, "".to_string(), literal, 0)
 }
