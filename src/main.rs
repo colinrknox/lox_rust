@@ -172,6 +172,10 @@ impl Scanner {
             return;
         }
         if c == '/' && self.r#match('/') {
+            while self.peek() != '\n' && !self.is_finished() {
+                self.advance();
+            }
+            self.advance();
             return;
         }
         self.tokens.push(match c {
@@ -237,5 +241,12 @@ impl Scanner {
 
     fn is_finished(&self) -> bool {
         self.current >= self.code.len()
+    }
+
+    fn peek(&self) -> char {
+        if self.is_finished() {
+            return '\0';
+        }
+        return self.code.as_bytes()[self.current] as char;
     }
 }
