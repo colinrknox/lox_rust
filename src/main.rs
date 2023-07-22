@@ -171,6 +171,9 @@ impl Scanner {
             self.line += 1;
             return;
         }
+        if c == '/' && self.r#match('/') {
+            return;
+        }
         self.tokens.push(match c {
             '(' => Token::from_tokentype(TokenType::LeftParen),
             ')' => Token::from_tokentype(TokenType::RightParen),
@@ -182,17 +185,55 @@ impl Scanner {
             '+' => Token::from_tokentype(TokenType::Plus),
             '*' => Token::from_tokentype(TokenType::Star),
             ';' => Token::from_tokentype(TokenType::Semicolon),
+            '/' => Token::from_tokentype(TokenType::Slash),
+            '>' => {
+                if self.r#match('=') {
+                    Token::from_tokentype(TokenType::GreaterEqual)
+                } else {
+                    Token::from_tokentype(TokenType::Greater)
+                }
+            }
+            '<' => {
+                if self.r#match('=') {
+                    Token::from_tokentype(TokenType::LessEqual)
+                } else {
+                    Token::from_tokentype(TokenType::Less)
+                }
+            }
+            '=' => {
+                if self.r#match('=') {
+                    Token::from_tokentype(TokenType::EqualEqual)
+                } else {
+                    Token::from_tokentype(TokenType::Equal)
+                }
+            }
+            '!' => {
+                if self.r#match('=') {
+                    Token::from_tokentype(TokenType::BangEqual)
+                } else {
+                    Token::from_tokentype(TokenType::Bang)
+                }
+            }
             _ => Token::from_tokentype(TokenType::EOF),
         });
     }
 
+    fn r#match(&mut self, expected: char) -> bool {
+        let curr = self.code.as_bytes()[self.current] as char;
+        if self.is_finished() || curr != expected {
+            return false;
+        }
+
+        self.current += 1;
+        return true;
+    }
     fn advance(&mut self) -> char {
         let res = self.code.as_bytes()[self.current] as char;
         self.current += 1;
         return res;
     }
 
-    fn is_finished(&self, file_length: usize) -> bool {
-        self.current > file_length
+    fn is_finished(&self) -> bool {
+        self.current >= self.code.len()
     }
 }
