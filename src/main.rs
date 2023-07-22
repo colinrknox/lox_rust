@@ -69,14 +69,6 @@ impl Token {
             line,
         }
     }
-
-    fn from_tokentype(r#type: TokenType) -> Token {
-        Self::from_type_literal(r#type, None)
-    }
-
-    fn from_type_literal(r#type: TokenType, literal: Option<Box<dyn std::any::Any>>) -> Token {
-        Self::new(r#type, "".to_string(), literal, 0)
-    }
 }
 
 impl fmt::Display for TokenType {
@@ -145,13 +137,14 @@ impl Scanner {
         Scanner {
             tokens: Vec::new(),
             code,
-            line: 0,
+            line: 1,
             start: 0,
             current: 0,
         }
     }
 
     fn scan_tokens(&mut self) -> &Vec<Token> {
+        println!("{}", self.code);
         while !self.is_finished() {
             self.start = self.current;
             self.scan_token();
@@ -171,68 +164,81 @@ impl Scanner {
             self.line += 1;
             return;
         }
-        if c == '/' && self.r#match('/') {
+        if c == '/' && self.match_char('/') {
+            self.current += 1;
             while self.peek() != '\n' && !self.is_finished() {
                 self.advance();
             }
-            self.advance();
             return;
         }
         self.tokens.push(match c {
-            '(' => Token::from_tokentype(TokenType::LeftParen),
-            ')' => Token::from_tokentype(TokenType::RightParen),
-            '{' => Token::from_tokentype(TokenType::LeftBrace),
-            '}' => Token::from_tokentype(TokenType::RightBrace),
-            ',' => Token::from_tokentype(TokenType::Comma),
-            '.' => Token::from_tokentype(TokenType::Dot),
-            '-' => Token::from_tokentype(TokenType::Minus),
-            '+' => Token::from_tokentype(TokenType::Plus),
-            '*' => Token::from_tokentype(TokenType::Star),
-            ';' => Token::from_tokentype(TokenType::Semicolon),
-            '/' => Token::from_tokentype(TokenType::Slash),
+            '(' => self.create_token(TokenType::LeftParen),
+            ')' => self.create_token(TokenType::RightParen),
+            '{' => self.create_token(TokenType::LeftBrace),
+            '}' => self.create_token(TokenType::RightBrace),
+            ',' => self.create_token(TokenType::Comma),
+            '.' => self.create_token(TokenType::Dot),
+            '-' => self.create_token(TokenType::Minus),
+            '+' => self.create_token(TokenType::Plus),
+            '*' => self.create_token(TokenType::Star),
+            ';' => self.create_token(TokenType::Semicolon),
+            '/' => self.create_token(TokenType::Slash),
             '>' => {
-                if self.r#match('=') {
+                if self.match_char('=') {
                     self.current += 1;
-                    Token::from_tokentype(TokenType::GreaterEqual)
+                    self.create_token(TokenType::GreaterEqual)
                 } else {
-                    Token::from_tokentype(TokenType::Greater)
+                    self.create_token(TokenType::Greater)
                 }
             }
             '<' => {
-                if self.r#match('=') {
+                if self.match_char('=') {
                     self.current += 1;
-                    Token::from_tokentype(TokenType::LessEqual)
+                    self.create_token(TokenType::LessEqual)
                 } else {
-                    Token::from_tokentype(TokenType::Less)
+                    self.create_token(TokenType::Less)
                 }
             }
             '=' => {
-                if self.r#match('=') {
+                if self.match_char('=') {
                     self.current += 1;
-                    Token::from_tokentype(TokenType::EqualEqual)
+                    self.create_token(TokenType::EqualEqual)
                 } else {
-                    Token::from_tokentype(TokenType::Equal)
+                    self.create_token(TokenType::Equal)
                 }
             }
             '!' => {
-                if self.r#match('=') {
+                if self.match_char('=') {
                     self.current += 1;
-                    Token::from_tokentype(TokenType::BangEqual)
+                    self.create_token(TokenType::BangEqual)
                 } else {
-                    Token::from_tokentype(TokenType::Bang)
+                    self.create_token(TokenType::Bang)
                 }
             }
-            _ => Token::from_tokentype(TokenType::EOF),
+            _ => self.create_token(TokenType::EOF),
         });
     }
 
-    fn r#match(&self, expected: char) -> bool {
+    fn create_token(&self, r#type: TokenType) -> Token {
+        self.create_token_literal(r#type, None)
+    }
+
+    fn create_token_literal(
+        &self,
+        r#type: TokenType,
+        literal: Option<Box<dyn std::any::Any>>,
+    ) -> Token {
+        Token::new(r#type, "".to_string(), literal, self.line)
+    }
+
+    fn match_char(&self, expected: char) -> bool {
         let curr = self.code.as_bytes()[self.current] as char;
         if self.is_finished() || curr != expected {
             return false;
         }
         return true;
     }
+
     fn advance(&mut self) -> char {
         let res = self.code.as_bytes()[self.current] as char;
         self.current += 1;
