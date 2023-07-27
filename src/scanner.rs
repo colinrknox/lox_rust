@@ -150,7 +150,8 @@ impl Scanner {
     }
 
     fn create_token(&self, r#type: TokenType) -> Token {
-        Token::new(r#type, "".to_string(), self.line)
+        let text = self.code[self.start..self.current].to_string();
+        Token::new(r#type, text, self.line)
     }
 
     fn match_char(&self, expected: char) -> bool {
