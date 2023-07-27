@@ -1,6 +1,4 @@
 use core::fmt::{Display, Formatter, Result};
-use std::sync::Mutex;
-use std::{cell::OnceCell, collections::HashMap};
 
 #[derive(Debug)]
 pub enum TokenType {

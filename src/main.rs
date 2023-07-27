@@ -1,5 +1,8 @@
 use lox_rust::{scanner::Scanner, token::Token};
-use std::{env, fs, io, ops::Deref};
+use std::{
+    env, fs,
+    io::{self, Write},
+};
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -14,17 +17,19 @@ fn main() {
 
 fn run_file(file: &String) {
     let contents: String = fs::read_to_string(file).unwrap();
-    run(contents);
+    let _ = run(contents);
 }
 
 fn run_prompt() {
     loop {
         print!("> ");
-        if let Ok(line) = io::read_to_string(io::stdin()) {
-            run(line);
-        } else {
-            println!("Error: invalid expression");
-        };
+        let _ = io::stdout().flush();
+        let mut buffer = String::new();
+        let _ = io::stdin().read_line(&mut buffer);
+        if buffer == "exit\n" {
+            break;
+        }
+        let _ = run(buffer);
     }
 }
 

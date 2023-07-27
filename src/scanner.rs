@@ -60,7 +60,6 @@ impl Scanner {
             '/' => self.create_token(TokenType::Slash),
             '>' => {
                 if self.match_char('=') {
-                    self.current += 1;
                     self.create_token(TokenType::GreaterEqual)
                 } else {
                     self.create_token(TokenType::Greater)
@@ -68,7 +67,6 @@ impl Scanner {
             }
             '<' => {
                 if self.match_char('=') {
-                    self.current += 1;
                     self.create_token(TokenType::LessEqual)
                 } else {
                     self.create_token(TokenType::Less)
@@ -76,7 +74,6 @@ impl Scanner {
             }
             '=' => {
                 if self.match_char('=') {
-                    self.current += 1;
                     self.create_token(TokenType::EqualEqual)
                 } else {
                     self.create_token(TokenType::Equal)
@@ -84,7 +81,6 @@ impl Scanner {
             }
             '!' => {
                 if self.match_char('=') {
-                    self.current += 1;
                     self.create_token(TokenType::BangEqual)
                 } else {
                     self.create_token(TokenType::Bang)
@@ -154,11 +150,12 @@ impl Scanner {
         Token::new(r#type, text, self.line)
     }
 
-    fn match_char(&self, expected: char) -> bool {
+    fn match_char(&mut self, expected: char) -> bool {
         let curr = self.code.as_bytes()[self.current] as char;
         if self.is_finished() || curr != expected {
             return false;
         }
+        self.current += 1;
         return true;
     }
 
