@@ -110,6 +110,9 @@ impl Scanner {
         }
         if self.peek() == '.' && self.peek_next().is_ascii_digit() {
             self.advance();
+            while self.peek().is_ascii_digit() {
+                self.advance();
+            }
         }
         let num: f64 = self.code[self.start..self.current].parse().unwrap();
         return self.create_token(TokenType::Number(num));
