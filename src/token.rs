@@ -1,5 +1,6 @@
 use core::fmt::{Display, Formatter, Result};
-use std::ops::Deref;
+use std::sync::Mutex;
+use std::{cell::OnceCell, collections::HashMap};
 
 #[derive(Debug)]
 pub enum TokenType {
@@ -24,7 +25,7 @@ pub enum TokenType {
     Less,
     LessEqual,
 
-    Identifier,
+    Identifier(String),
     String(String),
     Number(f64),
 
@@ -47,6 +48,28 @@ pub enum TokenType {
 
     EOF,
     Error,
+}
+
+pub fn keyword_map(keyword: String) -> TokenType {
+    match keyword.as_str() {
+        "or" => TokenType::Or,
+        "and" => TokenType::And,
+        "fn" => TokenType::Fn,
+        "class" => TokenType::Class,
+        "else" => TokenType::Else,
+        "false" => TokenType::False,
+        "true" => TokenType::True,
+        "for" => TokenType::For,
+        "if" => TokenType::If,
+        "nil" => TokenType::Nil,
+        "print" => TokenType::Print,
+        "return" => TokenType::Return,
+        "super" => TokenType::Super,
+        "this" => TokenType::This,
+        "var" => TokenType::Var,
+        "while" => TokenType::While,
+        _ => TokenType::Identifier(keyword),
+    }
 }
 
 pub struct Token {

@@ -1,5 +1,4 @@
-use super::token::{Token, TokenType};
-use core::fmt::Display;
+use super::token::{keyword_map, Token, TokenType};
 
 pub struct Scanner {
     tokens: Vec<Token>,
@@ -110,7 +109,11 @@ impl Scanner {
     }
 
     fn identifier(&mut self) -> Token {
-        self.create_token(TokenType::Fn)
+        while self.peek().is_ascii_alphabetic() {
+            self.advance();
+        }
+        let word: String = self.code[self.start..self.current].to_string();
+        self.create_token(keyword_map(word))
     }
 
     fn number(&mut self) -> Token {
