@@ -1,5 +1,5 @@
 use lox_rust::{scanner::Scanner, token::Token};
-use std::{env, fs, io};
+use std::{env, fs, io, ops::Deref};
 
 fn main() {
     let args: Vec<_> = env::args().collect();

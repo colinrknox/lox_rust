@@ -1,4 +1,5 @@
-use core::fmt;
+use core::fmt::{Display, Formatter, Result};
+use std::ops::Deref;
 
 #[derive(Debug)]
 pub enum TokenType {
@@ -24,8 +25,8 @@ pub enum TokenType {
     LessEqual,
 
     Identifier,
-    String,
-    Number,
+    String(String),
+    Number(f64),
 
     And,
     Class,
@@ -45,43 +46,33 @@ pub enum TokenType {
     While,
 
     EOF,
+    Error,
 }
 
 pub struct Token {
     r#type: TokenType,
     lexeme: String,
-    literal: Option<Box<dyn std::any::Any>>,
     line: usize,
 }
 
 impl Token {
-    pub fn new(
-        r#type: TokenType,
-        lexeme: String,
-        literal: Option<Box<dyn std::any::Any>>,
-        line: usize,
-    ) -> Token {
+    pub fn new(r#type: TokenType, lexeme: String, line: usize) -> Token {
         Token {
             r#type,
             lexeme,
-            literal,
             line,
         }
     }
 }
 
-impl fmt::Display for TokenType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Display for TokenType {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{:?}", self)
     }
 }
 
-impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{} {} {:?} {}",
-            self.r#type, self.lexeme, self.literal, self.line
-        )
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{} {} {}", self.r#type, self.lexeme, self.line)
     }
 }

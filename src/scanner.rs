@@ -1,4 +1,5 @@
 use super::token::{Token, TokenType};
+use core::fmt::Display;
 
 pub struct Scanner {
     tokens: Vec<Token>,
@@ -27,7 +28,7 @@ impl Scanner {
         }
 
         self.tokens
-            .push(Token::new(TokenType::EOF, "".to_string(), None, self.line));
+            .push(Token::new(TokenType::EOF, "".to_string(), self.line));
         return &self.tokens;
     }
 
@@ -47,7 +48,7 @@ impl Scanner {
             }
             return;
         }
-        self.tokens.push(match c {
+        let token = match c {
             '(' => self.create_token(TokenType::LeftParen),
             ')' => self.create_token(TokenType::RightParen),
             '{' => self.create_token(TokenType::LeftBrace),
@@ -91,20 +92,50 @@ impl Scanner {
                     self.create_token(TokenType::Bang)
                 }
             }
-            _ => self.create_token(TokenType::EOF),
-        });
+            '"' => self.string(),
+            _ => {
+                if c.is_ascii_digit() {
+                    self.number()
+                } else {
+                    self.create_token(TokenType::Error)
+                }
+            }
+        };
+        self.tokens.push(token);
+    }
+
+    fn number(&mut self) -> Token {
+        while self.peek().is_ascii_digit() {
+            self.advance();
+        }
+        if self.peek() == '.' && self.peek_next().is_ascii_digit() {
+            self.advance();
+        }
+        let num: f64 = self.code[self.start..self.current].parse().unwrap();
+        return self.create_token(TokenType::Number(num));
+    }
+
+    fn peek_next(&self) -> char {
+        if self.current + 1 >= self.code.len() {
+            return '\0';
+        }
+        return self.code.as_bytes()[self.current + 1] as char;
+    }
+
+    fn string(&mut self) -> Token {
+        while self.peek() != '"' && !self.is_finished() {
+            if self.peek() == '\n' {
+                self.line += 1
+            }
+            self.advance();
+        }
+        self.advance();
+        let value: String = self.code[self.start + 1..self.current].to_string();
+        return self.create_token(TokenType::String(value));
     }
 
     fn create_token(&self, r#type: TokenType) -> Token {
-        self.create_token_literal(r#type, None)
-    }
-
-    fn create_token_literal(
-        &self,
-        r#type: TokenType,
-        literal: Option<Box<dyn std::any::Any>>,
-    ) -> Token {
-        Token::new(r#type, "".to_string(), literal, self.line)
+        Token::new(r#type, "".to_string(), self.line)
     }
 
     fn match_char(&self, expected: char) -> bool {
