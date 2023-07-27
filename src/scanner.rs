@@ -130,7 +130,7 @@ impl Scanner {
             self.advance();
         }
         self.advance();
-        let value: String = self.code[self.start + 1..self.current].to_string();
+        let value: String = self.code[self.start + 1..self.current - 1].to_string();
         return self.create_token(TokenType::String(value));
     }
 
