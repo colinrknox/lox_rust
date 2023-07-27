@@ -34,11 +34,10 @@ impl Scanner {
 
     fn scan_token(&mut self) {
         let c = self.advance();
-        if c == ' ' || c == '\r' || c == '\t' {
-            return;
-        }
-        if c == '\n' {
-            self.line += 1;
+        if c.is_ascii_whitespace() {
+            if c == '\n' {
+                self.line += 1;
+            }
             return;
         }
         if c == '/' && self.match_char('/') {
@@ -96,12 +95,22 @@ impl Scanner {
             _ => {
                 if c.is_ascii_digit() {
                     self.number()
+                } else if self.is_alpha(c) {
+                    self.identifier()
                 } else {
                     self.create_token(TokenType::Error)
                 }
             }
         };
         self.tokens.push(token);
+    }
+
+    fn is_alpha(&self, c: char) -> bool {
+        c.is_ascii_alphabetic() || c == '_'
+    }
+
+    fn identifier(&mut self) -> Token {
+        self.create_token(TokenType::Fn)
     }
 
     fn number(&mut self) -> Token {
