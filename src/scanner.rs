@@ -1,3 +1,5 @@
+use crate::lox::Lox;
+
 use super::token::{keyword_map, Token, TokenType};
 
 pub struct Scanner {
@@ -6,16 +8,18 @@ pub struct Scanner {
     line: usize,
     start: usize,
     current: usize,
+    errors: Lox,
 }
 
 impl Scanner {
-    pub fn new(code: String) -> Scanner {
+    pub fn new(code: String, errors: Lox) -> Scanner {
         Scanner {
             tokens: Vec::new(),
             code,
             line: 1,
             start: 0,
             current: 0,
+            errors,
         }
     }
 
@@ -29,6 +33,10 @@ impl Scanner {
         self.tokens
             .push(Token::new(TokenType::EOF, "".to_string(), self.line));
         return &self.tokens;
+    }
+
+    pub fn get_errors(&self) -> Lox {
+        return self.errors.clone();
     }
 
     fn scan_token(&mut self) {
@@ -93,6 +101,8 @@ impl Scanner {
                 } else if self.is_alpha(c) {
                     self.identifier()
                 } else {
+                    self.errors
+                        .error(self.line, "Invalid character".to_string());
                     self.create_token(TokenType::Error)
                 }
             }

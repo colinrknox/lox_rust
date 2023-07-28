@@ -1,7 +1,8 @@
-use lox_rust::{scanner::Scanner, token::Token};
+use lox_rust::{lox::Lox, scanner::Scanner, token::Token};
 use std::{
     env, fs,
     io::{self, Write},
+    process,
 };
 
 fn main() {
@@ -34,9 +35,12 @@ fn run_prompt() {
 }
 
 fn run(code: String) -> Result<(), String> {
-    let mut scanner = Scanner::new(code);
+    let mut scanner = Scanner::new(code, Lox::new());
+    let error = scanner.get_errors();
     let tokens: &Vec<Token> = scanner.scan_tokens();
-
+    if error.had_error {
+        process::exit(1);
+    }
     for t in tokens {
         println!("{}", t);
     }
