@@ -11,6 +11,12 @@ pub mod lox;
 pub mod scanner;
 pub mod token;
 
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
 pub fn run_file(file: &String) {
     let contents: String = fs::read_to_string(file).unwrap();
     let _ = run(contents);
@@ -44,5 +50,6 @@ fn run(code: String) -> Result<(), String> {
 
 #[wasm_bindgen]
 pub fn web_run() {
+    log("In web_run()");
     run_prompt();
 }
