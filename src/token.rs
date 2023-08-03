@@ -1,6 +1,6 @@
 use core::fmt::{Display, Formatter, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -70,6 +70,7 @@ pub fn keyword_map(keyword: String) -> TokenType {
     }
 }
 
+#[derive(Clone)]
 pub struct Token {
     r#type: TokenType,
     lexeme: String,

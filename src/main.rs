@@ -1,4 +1,4 @@
-use lox_rust::{run_file, run_prompt};
+use lox_rust::{run_file, stdin_interactive};
 use std::env;
 
 fn main() {
@@ -8,6 +8,6 @@ fn main() {
     } else if args.len() == 2 {
         run_file(&args[1]);
     } else {
-        run_prompt();
+        stdin_interactive();
     }
 }
