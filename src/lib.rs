@@ -11,10 +11,6 @@ pub mod lox;
 pub mod scanner;
 pub mod token;
 
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 pub fn run_file(file: &String) {
     let contents: String = fs::read_to_string(file).unwrap();
     let _ = run(contents);
