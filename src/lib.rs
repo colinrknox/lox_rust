@@ -22,12 +22,6 @@ cfg_if! {
     }
 }
 
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
-
 pub fn run_file(file: &String) {
     let contents: String = fs::read_to_string(file).unwrap();
     let _ = run(contents);
@@ -61,6 +55,12 @@ fn run(code: String) -> Result<Vec<Token>, String> {
         process::exit(1);
     }
     Ok(tokens.to_vec())
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
 }
 
 #[wasm_bindgen]
