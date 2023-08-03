@@ -1,5 +1,8 @@
+extern crate cfg_if;
+extern crate wasm_bindgen;
 use crate::{lox::Lox, scanner::Scanner, token::Token};
 
+use cfg_if::cfg_if;
 use std::{
     fs,
     io::{self, Write},
@@ -10,6 +13,14 @@ use wasm_bindgen::prelude::*;
 pub mod lox;
 pub mod scanner;
 pub mod token;
+
+cfg_if! {
+    if #[cfg(feature = "wee_alloc")] {
+        extern crate wee_alloc;
+        #[global_allocator]
+        static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+    }
+}
 
 #[wasm_bindgen]
 extern "C" {
