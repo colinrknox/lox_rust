@@ -59,7 +59,7 @@ pub fn web_run(prompt: String) -> String {
         Ok(tokens) => {
             let mut result = String::new();
             for token in tokens {
-                result.push_str(format!("{}", token).as_str());
+                result.push_str(format!("{}\n", token).as_str());
             }
             result
         }
