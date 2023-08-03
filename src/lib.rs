@@ -1,8 +1,5 @@
-extern crate cfg_if;
-extern crate wasm_bindgen;
 use crate::{lox::Lox, scanner::Scanner, token::Token};
 
-use cfg_if::cfg_if;
 use std::{
     fs,
     io::{self, Write},
@@ -14,13 +11,9 @@ pub mod lox;
 pub mod scanner;
 pub mod token;
 
-cfg_if! {
-    if #[cfg(feature = "wee_alloc")] {
-        extern crate wee_alloc;
-        #[global_allocator]
-        static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-    }
-}
+#[cfg(feature = "wee_alloc")]
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub fn run_file(file: &String) {
     let contents: String = fs::read_to_string(file).unwrap();
