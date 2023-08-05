@@ -11,6 +11,7 @@ use std::{
 };
 use wasm_bindgen::prelude::*;
 
+pub mod ast;
 pub mod lox;
 pub mod scanner;
 pub mod token;
