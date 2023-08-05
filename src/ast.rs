@@ -13,6 +13,14 @@ macro_rules! ast {
                 pub $field: $data_type,
             )*
         }
+
+        impl $name {
+            pub fn new($( $field: $data_type ),*) -> $name {
+                $name {
+                    $( $field: $field ),*
+                }
+            }
+        }
     };
     (@ast_field $name: ident, $data_type: ident ) => {
         Box<dyn $data_type>
