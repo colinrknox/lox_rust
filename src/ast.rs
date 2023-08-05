@@ -6,8 +6,8 @@ macro_rules! ast {
             $(
                 /*
                  * Not sure if having someone pass in a proper type is the correct
-                 * solution or if we should do something clever to wrap
-                 * unknown type sizes in a box or whatever
+                 * solution or if be cleverly wrapped by the macro when the
+                 * type size is unknown or whatever
                  */
                 // pub $field: ast!(@ast_field $name, $data_type),
                 pub $field: $data_type,
