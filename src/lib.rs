@@ -1,4 +1,8 @@
-use crate::{lox::Lox, scanner::Scanner, token::Token};
+use crate::{
+    lox::Lox,
+    scanner::{Scan, Scanner},
+    token::Token,
+};
 
 use std::{
     fs,
@@ -10,11 +14,6 @@ use wasm_bindgen::prelude::*;
 pub mod lox;
 pub mod scanner;
 pub mod token;
-
-pub fn run_file(file: &String) {
-    let contents: String = fs::read_to_string(file).unwrap();
-    let _ = run(contents);
-}
 
 pub fn stdin_interactive() {
     loop {
@@ -36,8 +35,24 @@ pub fn stdin_interactive() {
     }
 }
 
+pub fn run_file(file: &String) {
+    let contents: String = fs::read_to_string(file).unwrap();
+    if let Ok(tokens) = run(contents) {
+        for t in tokens {
+            println!("{}", t);
+        }
+    } else {
+        println!("Error");
+        process::exit(69);
+    }
+}
+
 fn run(code: String) -> Result<Vec<Token>, String> {
-    let mut scanner = Scanner::new(code, Lox::new());
+    let scanner = Scanner::new(code, Lox::new());
+    run_with_scanner(scanner)
+}
+
+pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Vec<Token>, String> {
     let error = scanner.get_errors();
     let tokens: &Vec<Token> = scanner.scan_tokens();
     if error.had_error {

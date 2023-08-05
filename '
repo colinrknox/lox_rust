@@ -78,40 +78,26 @@ pub struct Token {
 }
 
 pub struct TokenBuilder {
-    token_type: TokenType,
-    lexeme: String,
-    line: usize,
+    token: Token,
 }
 
 impl TokenBuilder {
-    pub fn new() -> TokenBuilder {
-        TokenBuilder {
-            token_type: TokenType::Error,
-            lexeme: "".to_string(),
-            line: 0,
-        }
-    }
-
     pub fn build(self) -> Token {
-        Token {
-            token_type: self.token_type,
-            lexeme: self.lexeme,
-            line: self.line,
-        }
+        self.token
     }
 
     pub fn token_type(mut self, token_type: TokenType) -> TokenBuilder {
-        self.token_type = token_type;
+        self.token.token_type = token_type;
         self
     }
 
     pub fn lexeme(mut self, lexeme: String) -> TokenBuilder {
-        self.lexeme = lexeme;
+        self.token.lexeme = lexeme;
         self
     }
 
     pub fn line(mut self, line: usize) -> TokenBuilder {
-        self.line = line;
+        self.token.line = line;
         self
     }
 }
@@ -134,6 +120,6 @@ impl Display for TokenType {
 
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{} {} {}", self.token_type, self.lexeme, self.line)
+        write!(f, "{} {} {}", self.r#type, self.lexeme, self.line)
     }
 }

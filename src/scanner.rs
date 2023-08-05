@@ -1,6 +1,11 @@
-use crate::lox::Lox;
+use crate::{lox::Lox, token::TokenBuilder};
 
 use super::token::{keyword_map, Token, TokenType};
+
+pub trait Scan {
+    fn scan_tokens(&mut self) -> &Vec<Token>;
+    fn get_errors(&self) -> Lox;
+}
 
 pub struct Scanner {
     tokens: Vec<Token>,
@@ -9,6 +14,28 @@ pub struct Scanner {
     start: usize,
     current: usize,
     errors: Lox,
+}
+
+impl Scan for Scanner {
+    fn scan_tokens(&mut self) -> &Vec<Token> {
+        println!("{}", self.code);
+        while !self.is_finished() {
+            self.start = self.current;
+            self.scan_token();
+        }
+
+        let token: Token = TokenBuilder::new()
+            .token_type(TokenType::EOF)
+            .lexeme("".to_string())
+            .line(self.line)
+            .build();
+        self.tokens.push(token);
+        return &self.tokens;
+    }
+
+    fn get_errors(&self) -> Lox {
+        return self.errors.clone();
+    }
 }
 
 impl Scanner {
@@ -21,22 +48,6 @@ impl Scanner {
             current: 0,
             errors,
         }
-    }
-
-    pub fn scan_tokens(&mut self) -> &Vec<Token> {
-        println!("{}", self.code);
-        while !self.is_finished() {
-            self.start = self.current;
-            self.scan_token();
-        }
-
-        self.tokens
-            .push(Token::new(TokenType::EOF, "".to_string(), self.line));
-        return &self.tokens;
-    }
-
-    pub fn get_errors(&self) -> Lox {
-        return self.errors.clone();
     }
 
     fn scan_token(&mut self) {
@@ -155,9 +166,13 @@ impl Scanner {
         return self.create_token(TokenType::String(value));
     }
 
-    fn create_token(&self, r#type: TokenType) -> Token {
+    fn create_token(&self, token_type: TokenType) -> Token {
         let text = self.code[self.start..self.current].to_string();
-        Token::new(r#type, text, self.line)
+        TokenBuilder::new()
+            .token_type(token_type)
+            .lexeme(text)
+            .line(self.line)
+            .build()
     }
 
     fn match_char(&mut self, expected: char) -> bool {
