@@ -1,14 +1,14 @@
 use crate::{lox::Lox, token::TokenBuilder};
 
-use super::token::{keyword_map, Token, TokenType};
+use super::token::{keyword_map, Token, TokenType, Tokens};
 
 pub trait Scan {
-    fn scan_tokens(&mut self) -> &Vec<Token>;
+    fn scan_tokens(&mut self) -> Tokens;
     fn get_errors(&self) -> Lox;
 }
 
 pub struct Scanner {
-    tokens: Vec<Token>,
+    tokens: Tokens,
     code: String,
     line: usize,
     start: usize,
@@ -17,7 +17,7 @@ pub struct Scanner {
 }
 
 impl Scan for Scanner {
-    fn scan_tokens(&mut self) -> &Vec<Token> {
+    fn scan_tokens(&mut self) -> Tokens {
         println!("{}", self.code);
         while !self.is_finished() {
             self.start = self.current;
@@ -30,7 +30,7 @@ impl Scan for Scanner {
             .line(self.line)
             .build();
         self.tokens.push(token);
-        return &self.tokens;
+        return self.tokens.clone();
     }
 
     fn get_errors(&self) -> Lox {
@@ -41,7 +41,7 @@ impl Scan for Scanner {
 impl Scanner {
     pub fn new(code: String, errors: Lox) -> Scanner {
         Scanner {
-            tokens: Vec::new(),
+            tokens: Tokens::new(),
             code,
             line: 1,
             start: 0,

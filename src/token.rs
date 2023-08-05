@@ -70,6 +70,8 @@ pub fn keyword_map(keyword: String) -> TokenType {
     }
 }
 
+pub struct Tokens(Vec<Token>);
+
 #[derive(Clone)]
 pub struct Token {
     token_type: TokenType,
@@ -116,6 +118,20 @@ impl TokenBuilder {
     }
 }
 
+impl Tokens {
+    pub fn new() -> Tokens {
+        Tokens(Vec::new())
+    }
+
+    pub fn push(&mut self, token: Token) {
+        self.0.push(token)
+    }
+
+    pub fn clone(&self) -> Tokens {
+        Tokens(self.0.clone())
+    }
+}
+
 impl Token {
     pub fn new(token_type: TokenType, lexeme: String, line: usize) -> Token {
         Token {
@@ -123,6 +139,14 @@ impl Token {
             lexeme,
             line,
         }
+    }
+}
+
+impl Display for Tokens {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        self.0.iter().fold(Ok(()), |result, token| {
+            result.and_then(|_| writeln!(f, "{}", token))
+        })
     }
 }
 

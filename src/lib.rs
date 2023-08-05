@@ -1,7 +1,7 @@
 use crate::{
     lox::Lox,
     scanner::{Scan, Scanner},
-    token::Token,
+    token::Tokens,
 };
 
 use std::{
@@ -25,9 +25,7 @@ pub fn stdin_interactive() {
             break;
         }
         if let Ok(tokens) = run(buffer.clone()) {
-            for t in tokens {
-                println!("{}", t);
-            }
+            println!("{}", tokens);
         } else {
             println!("Error");
             process::exit(69);
@@ -38,27 +36,25 @@ pub fn stdin_interactive() {
 pub fn run_file(file: &String) {
     let contents: String = fs::read_to_string(file).unwrap();
     if let Ok(tokens) = run(contents) {
-        for t in tokens {
-            println!("{}", t);
-        }
+        println!("{}", tokens);
     } else {
         println!("Error");
         process::exit(69);
     }
 }
 
-fn run(code: String) -> Result<Vec<Token>, String> {
+fn run(code: String) -> Result<Tokens, String> {
     let scanner = Scanner::new(code, Lox::new());
     run_with_scanner(scanner)
 }
 
-pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Vec<Token>, String> {
+pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Tokens, String> {
     let error = scanner.get_errors();
-    let tokens: &Vec<Token> = scanner.scan_tokens();
+    let tokens: Tokens = scanner.scan_tokens();
     if error.had_error {
         process::exit(1);
     }
-    Ok(tokens.to_vec())
+    Ok(tokens)
 }
 
 #[wasm_bindgen]
@@ -71,13 +67,7 @@ extern "C" {
 pub fn web_run(prompt: String) -> String {
     log("In web_run()");
     match run(prompt) {
-        Ok(tokens) => {
-            let mut result = String::new();
-            for token in tokens {
-                result.push_str(format!("{}\n", token).as_str());
-            }
-            result
-        }
+        Ok(tokens) => format!("{}", tokens),
         Err(msg) => msg,
     }
 }
