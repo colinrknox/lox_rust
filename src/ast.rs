@@ -2,43 +2,6 @@ use core::fmt::Display;
 
 use super::token::Token;
 
-// macro_rules! ast {
-//     ( $name:ident: $( $data_type:ident $field:ident ),* ) => {
-//         pub struct $name {
-//             $(
-//                 /*
-//                  * Not sure if having someone pass in a proper type is the correct
-//                  * solution or if be cleverly wrapped by the macro when the
-//                  * type size is unknown or whatever
-//                  */
-//                 // pub $field: ast!(@ast_field $name, $data_type),
-//                 pub $field: $data_type,
-//             )*
-//         }
-//
-//         impl $name {
-//             pub fn new($( $field: $data_type ),*) -> $name {
-//                 $name {
-//                     $( $field: $field ),*
-//                 }
-//             }
-//         }
-//     };
-//     (@ast_field $name: ident, $data_type: ident ) => {
-//         Box<dyn $data_type>
-//     };
-// }
-// pub type Expr = Box<dyn Expression>;
-
-// pub trait Expression {
-//     fn accept(&self);
-// }
-
-// ast!(Binary: Expr left, Token operator, Expr right);
-// ast!(Grouping: Expr expression);
-// ast!(Literal: Object value);
-// ast!(Unary: Token operator, Expr right);
-
 pub enum Object {
     Number(f64),
     String(String),
