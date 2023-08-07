@@ -140,6 +140,10 @@ impl Token {
             line,
         }
     }
+
+    pub fn get_lexeme(&self) -> String {
+        return self.lexeme.clone();
+    }
 }
 
 impl Display for Tokens {

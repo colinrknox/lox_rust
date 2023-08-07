@@ -64,6 +64,14 @@ impl Scanner {
                 self.advance();
             }
             return;
+        } else if c == '/' && self.match_char('*') {
+            self.current += 1;
+            while self.peek() != '*' && !self.match_char('/') && !self.is_finished() {
+                self.advance();
+            }
+            self.advance();
+            self.advance();
+            return;
         }
         let token = match c {
             '(' => self.create_token(TokenType::LeftParen),
