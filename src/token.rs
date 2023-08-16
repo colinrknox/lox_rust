@@ -1,6 +1,6 @@
 use core::fmt::{Display, Formatter, Result};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -75,8 +75,8 @@ pub struct Tokens(Vec<Token>);
 #[derive(Clone)]
 pub struct Token {
     pub token_type: TokenType,
-    lexeme: String,
-    line: usize,
+    pub lexeme: String,
+    pub line: usize,
 }
 
 pub struct TokenBuilder {

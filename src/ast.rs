@@ -5,6 +5,7 @@ use super::token::Token;
 pub enum Object {
     Number(f64),
     String(String),
+    Boolean(bool),
     Nil,
 }
 
@@ -25,6 +26,7 @@ impl Display for Object {
             Object::Nil => write!(f, "{}", "nil"),
             Object::Number(num) => write!(f, "{}", num),
             Object::String(string) => write!(f, "{}", string),
+            Object::Boolean(bool) => write!(f, "{}", bool),
         }
     }
 }
