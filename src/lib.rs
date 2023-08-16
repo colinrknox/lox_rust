@@ -52,7 +52,7 @@ fn run(code: String) -> Result<Tokens, String> {
         Ok(tokens) => {
             let mut parser = Parser::new(tokens.clone());
             let expr = parser.parse();
-            print!("{}", expr);
+            println!("{}", expr);
             tokens
         }
         Err(string) => {
