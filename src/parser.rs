@@ -141,6 +141,20 @@ impl Parser {
         if self.at_end() {
             return false;
         }
+        if let TokenType::Number(_) = t {
+            if let TokenType::Number(_) = self.peek().token_type {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if let TokenType::String(_) = t {
+            if let TokenType::String(_) = self.peek().token_type {
+                return true;
+            } else {
+                return false;
+            }
+        }
         return self.peek().token_type == t;
     }
 

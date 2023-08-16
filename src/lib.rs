@@ -47,7 +47,7 @@ pub fn run_file(file: &String) {
 }
 
 fn run(code: String) -> Result<Tokens, String> {
-    let mut scanner = Scanner::new(code, Lox::new());
+    let scanner = Scanner::new(code, Lox::new());
     let t = match run_with_scanner(scanner) {
         Ok(tokens) => {
             let mut parser = Parser::new(tokens.clone());
@@ -68,10 +68,10 @@ pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Tokens, String> {
     let tokens: Tokens = scanner.scan_tokens();
     if error.had_error {
         let mut error_string: String = "".to_string();
-        for e in error.errors {
+        for e in error.errors.clone() {
             error_string = format!("{}\n{}", error_string, e);
         }
-        Err(format!("{}", error));
+        return Err(format!("{}", error));
     }
     Ok(tokens)
 }
