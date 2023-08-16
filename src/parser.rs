@@ -29,28 +29,56 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
+    pub fn parse(&mut self) -> Expr {
+        return self.expression();
+    }
+
     fn expression(&mut self) -> Expr {
         return self.equality();
     }
 
     fn equality(&mut self) -> Expr {
-        let expr = self.comparison();
-
+        let mut expr = self.comparison();
+        while self.compare(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
+            let operator: Token = self.previous();
+            let right: Expr = self.comparison();
+            expr = Expr::Binary(Box::new(expr), operator, Box::new(right));
+        }
         return expr;
     }
 
     fn comparison(&mut self) -> Expr {
-        let expr: Expr = self.term();
+        let mut expr: Expr = self.term();
+        while self.compare(vec![
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
+            let operator: Token = self.previous();
+            let right: Expr = self.term();
+            expr = Expr::Binary(Box::new(expr), operator, Box::new(right));
+        }
         return expr;
     }
 
     fn term(&mut self) -> Expr {
-        let expr: Expr = self.factor();
+        let mut expr: Expr = self.factor();
+        while self.compare(vec![TokenType::Minus, TokenType::Plus]) {
+            let operator: Token = self.previous();
+            let right: Expr = self.factor();
+            expr = Expr::Binary(Box::new(expr), operator, Box::new(right));
+        }
         return expr;
     }
 
     fn factor(&mut self) -> Expr {
-        let expr: Expr = self.unary();
+        let mut expr: Expr = self.unary();
+        while self.compare(vec![TokenType::Slash, TokenType::Star]) {
+            let operator: Token = self.previous();
+            let right: Expr = self.unary();
+            expr = Expr::Binary(Box::new(expr), operator, Box::new(right));
+        }
         return expr;
     }
 
@@ -85,7 +113,7 @@ impl Parser {
         }
 
         let expr: Expr = self.expression();
-        self.consume(
+        let _ = self.consume(
             TokenType::RightParen,
             "Expect ')' after expression.".to_string(),
         );
