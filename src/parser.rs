@@ -1,5 +1,5 @@
 use crate::ast::{Expr, Object};
-use crate::token::TokenType;
+use crate::token::{TokenType, Tokens};
 
 use super::token::Token;
 
@@ -20,12 +20,12 @@ impl ParseError {
 }
 
 pub struct Parser {
-    tokens: Vec<Token>,
+    tokens: Tokens,
     current: usize,
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Parser {
+    pub fn new(tokens: Tokens) -> Parser {
         Parser { tokens, current: 0 }
     }
 

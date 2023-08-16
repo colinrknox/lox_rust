@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Clone)]
 pub struct Error {
     line: usize,
@@ -19,6 +21,20 @@ impl Error {
 pub struct Lox {
     pub had_error: bool,
     pub errors: Vec<Error>,
+}
+
+impl Display for Lox {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.errors.iter().fold(Ok(()), |result, token| {
+            result.and_then(|_| writeln!(f, "{}", token))
+        })
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {} {}", self.line, self.place, self.message)
+    }
 }
 
 impl Lox {

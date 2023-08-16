@@ -4,6 +4,7 @@ use crate::{
     token::Tokens,
 };
 
+use parser::Parser;
 use std::{
     fs,
     io::{self, Write},
@@ -46,15 +47,31 @@ pub fn run_file(file: &String) {
 }
 
 fn run(code: String) -> Result<Tokens, String> {
-    let scanner = Scanner::new(code, Lox::new());
-    run_with_scanner(scanner)
+    let mut scanner = Scanner::new(code, Lox::new());
+    let t = match run_with_scanner(scanner) {
+        Ok(tokens) => {
+            let mut parser = Parser::new(tokens.clone());
+            let expr = parser.parse();
+            print!("{}", expr);
+            tokens
+        }
+        Err(string) => {
+            println!("{}", string);
+            process::exit(69);
+        }
+    };
+    Ok(t)
 }
 
 pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Tokens, String> {
     let error = scanner.get_errors();
     let tokens: Tokens = scanner.scan_tokens();
     if error.had_error {
-        process::exit(1);
+        let mut error_string: String = "".to_string();
+        for e in error.errors {
+            error_string = format!("{}\n{}", error_string, e);
+        }
+        Err(format!("{}", error));
     }
     Ok(tokens)
 }

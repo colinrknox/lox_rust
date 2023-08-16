@@ -132,6 +132,13 @@ impl Tokens {
     }
 }
 
+impl std::ops::Index<usize> for Tokens {
+    type Output = Token;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
 impl Token {
     pub fn new(token_type: TokenType, lexeme: String, line: usize) -> Token {
         Token {

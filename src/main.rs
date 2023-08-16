@@ -15,15 +15,15 @@ fn main() {
         stdin_interactive();
     }
 
-    let expr: Expr = Expr::Binary(
-        Box::new(Expr::Unary(
-            TokenBuilder::new().lexeme("-".to_string()).build(),
-            Box::new(Expr::Literal(Object::Number(123.0))),
-        )),
-        TokenBuilder::new().lexeme("*".to_string()).build(),
-        Box::new(Expr::Grouping(Box::new(Expr::Literal(Object::Number(
-            45.67,
-        ))))),
-    );
-    println!("{}", expr);
+    // let expr: Expr = Expr::Binary(
+    //     Box::new(Expr::Unary(
+    //         TokenBuilder::new().lexeme("-".to_string()).build(),
+    //         Box::new(Expr::Literal(Object::Number(123.0))),
+    //     )),
+    //     TokenBuilder::new().lexeme("*".to_string()).build(),
+    //     Box::new(Expr::Grouping(Box::new(Expr::Literal(Object::Number(
+    //         45.67,
+    //     ))))),
+    // );
+    // println!("{}", expr);
 }
