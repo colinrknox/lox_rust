@@ -141,21 +141,17 @@ impl Parser {
         if self.at_end() {
             return false;
         }
-        if let TokenType::Number(_) = t {
-            if let TokenType::Number(_) = self.peek().token_type {
-                return true;
-            } else {
-                return false;
+        match t {
+            TokenType::Number(_) if matches!(self.peek().token_type, TokenType::Number(_)) => {
+                return true
             }
-        }
-        if let TokenType::String(_) = t {
-            if let TokenType::String(_) = self.peek().token_type {
-                return true;
-            } else {
-                return false;
+            TokenType::Number(_) => return false,
+            TokenType::String(_) if matches!(self.peek().token_type, TokenType::String(_)) => {
+                return true
             }
+            TokenType::String(_) => return false,
+            token_type => return self.peek().token_type == token_type,
         }
-        return self.peek().token_type == t;
     }
 
     fn at_end(&self) -> bool {
