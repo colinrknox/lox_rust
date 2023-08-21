@@ -2,7 +2,7 @@ use core::fmt::Display;
 
 use super::token::{Token, TokenType};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Object {
     Number(f64),
     String(String),
@@ -63,12 +63,23 @@ fn eval_binary(lhs: Expr, op: Token, rhs: Expr) -> Result<Object, Expr> {
     let lhs_res = eval(lhs.clone())?;
     let rhs_res = eval(rhs.clone())?;
 
+    if TokenType::BangEqual == op.token_type {
+        return Ok(Object::Boolean(lhs_res != rhs_res));
+    } else if TokenType::EqualEqual == op.token_type {
+        return Ok(Object::Boolean(lhs_res == rhs_res));
+    }
+
     if let (Object::Number(lhs_res), Object::Number(rhs_res)) = (lhs_res.clone(), rhs_res.clone()) {
         return match op.token_type {
             TokenType::Minus => Ok(Object::Number(lhs_res - rhs_res)),
             TokenType::Slash => Ok(Object::Number(lhs_res / rhs_res)),
             TokenType::Star => Ok(Object::Number(lhs_res * rhs_res)),
             TokenType::Plus => Ok(Object::Number(lhs_res + rhs_res)),
+            TokenType::Greater => Ok(Object::Boolean(lhs_res > rhs_res)),
+            TokenType::GreaterEqual => Ok(Object::Boolean(lhs_res >= rhs_res)),
+            TokenType::EqualEqual => Ok(Object::Boolean(lhs_res == rhs_res)),
+            TokenType::LessEqual => Ok(Object::Boolean(lhs_res <= rhs_res)),
+            TokenType::Less => Ok(Object::Boolean(lhs_res <= rhs_res)),
             _ => Err(Expr::Binary(Box::new(lhs), op, Box::new(rhs))),
         };
     } else if let (Object::String(lhs_res), Object::String(rhs_res)) = (lhs_res, rhs_res) {
