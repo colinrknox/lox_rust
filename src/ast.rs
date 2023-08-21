@@ -102,15 +102,15 @@ fn eval_unary(token: Token, expr: Expr) -> Result<Object, Expr> {
                 Err(expr)
             }
         }
-        TokenType::Bang => Ok(is_truthy(res)),
+        TokenType::Bang => Ok(Object::Boolean(!is_truthy(res))),
         _ => Err(expr),
     }
 }
 
-fn is_truthy(obj: Object) -> Object {
+fn is_truthy(obj: Object) -> bool {
     match obj {
-        Object::Nil => Object::Boolean(false),
-        Object::Boolean(b) => Object::Boolean(b),
-        _ => Object::Boolean(true),
+        Object::Nil => false,
+        Object::Boolean(b) => b,
+        _ => true,
     }
 }
