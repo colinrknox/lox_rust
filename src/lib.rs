@@ -1,4 +1,5 @@
 use crate::{
+    ast::eval,
     lox::Lox,
     scanner::{Scan, Scanner},
     token::Tokens,
@@ -52,6 +53,11 @@ fn run(code: String) -> Result<Tokens, String> {
         Ok(tokens) => {
             let mut parser = Parser::new(tokens.clone());
             let expr = parser.parse();
+            if let Ok(eval) = eval(expr.clone()) {
+                println!("{}", eval);
+            } else {
+                return Err("Runtime error".to_string());
+            }
             println!("{}", expr);
             tokens
         }
