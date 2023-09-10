@@ -5,6 +5,7 @@ use crate::{
     token::Tokens,
 };
 
+use ast::{eval_stmt, Stmt};
 use parser::Parser;
 use std::{
     fs,
@@ -52,13 +53,10 @@ fn run(code: String) -> Result<Tokens, String> {
     let t = match run_with_scanner(scanner) {
         Ok(tokens) => {
             let mut parser = Parser::new(tokens.clone());
-            let expr = parser.parse();
-            if let Ok(eval) = eval(expr.clone()) {
-                println!("{}", eval);
-            } else {
-                return Err("Runtime error".to_string());
+            let stmts = parser.parse();
+            for stmt in stmts {
+                execute(stmt);
             }
-            println!("{}", expr);
             tokens
         }
         Err(string) => {
@@ -67,6 +65,10 @@ fn run(code: String) -> Result<Tokens, String> {
         }
     };
     Ok(t)
+}
+
+fn execute(stmt: Stmt) {
+    eval_stmt(stmt);
 }
 
 pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Tokens, String> {

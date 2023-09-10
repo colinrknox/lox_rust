@@ -72,7 +72,7 @@ pub fn keyword_map(keyword: String) -> TokenType {
 
 pub struct Tokens(Vec<Token>);
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,

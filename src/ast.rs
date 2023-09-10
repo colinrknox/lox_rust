@@ -2,7 +2,7 @@ use core::fmt::Display;
 
 use super::token::{Token, TokenType};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Object {
     Number(f64),
     String(String),
@@ -10,7 +10,7 @@ pub enum Object {
     Nil,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     Binary(Box<Expr>, Token, Box<Expr>),
     Grouping(Box<Expr>),
@@ -113,4 +113,23 @@ fn is_truthy(obj: Object) -> bool {
         Object::Boolean(b) => b,
         _ => true,
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum Stmt {
+    Expression(Box<Expr>),
+    Print(Box<Expr>),
+}
+
+pub fn eval_stmt(stmt: Stmt) {
+    match stmt {
+        Stmt::Print(expr) => println!("{}", visit(*expr)),
+        Stmt::Expression(expr) => {
+            eval(*expr);
+        }
+    }
+}
+
+fn eval_stmt_print(expr: Expr) {
+    println!("{}", expr);
 }

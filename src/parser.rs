@@ -1,4 +1,6 @@
-use crate::ast::{Expr, Object};
+use tracing::Value;
+
+use crate::ast::{Expr, Object, Stmt};
 use crate::token::{TokenType, Tokens};
 
 use super::token::Token;
@@ -29,8 +31,31 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Expr {
-        return self.expression();
+    pub fn parse(&mut self) -> Vec<Stmt> {
+        let mut stmts = Vec::new();
+        while self.at_end() {
+            stmts.push(self.statement());
+        }
+        return stmts;
+    }
+
+    fn statement(&mut self) -> Stmt {
+        match self.peek().token_type {
+            TokenType::Print => return self.print_stmt(),
+            _ => return self.expression_stmt(),
+        }
+    }
+
+    fn print_stmt(&mut self) -> Stmt {
+        let value: Expr = self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
+        return Stmt::Print(Box::new(value));
+    }
+
+    fn expression_stmt(&mut self) -> Stmt {
+        let value: Expr = self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
+        return Stmt::Expression(Box::new(value));
     }
 
     fn expression(&mut self) -> Expr {
