@@ -1,5 +1,3 @@
-use tracing::Value;
-
 use crate::ast::{Expr, Object, Stmt};
 use crate::token::{TokenType, Tokens};
 
@@ -33,27 +31,27 @@ impl Parser {
 
     pub fn parse(&mut self) -> Vec<Stmt> {
         let mut stmts = Vec::new();
-        while self.at_end() {
+        while !self.at_end() {
             stmts.push(self.statement());
         }
         return stmts;
     }
 
     fn statement(&mut self) -> Stmt {
-        match self.peek().token_type {
-            TokenType::Print => return self.print_stmt(),
-            _ => return self.expression_stmt(),
+        if self.compare(vec![TokenType::Print]) {
+            return self.print_stmt();
         }
+        return self.expression_stmt();
     }
 
     fn print_stmt(&mut self) -> Stmt {
-        let value: Expr = self.expression();
+        let value = self.expression();
         self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
         return Stmt::Print(Box::new(value));
     }
 
     fn expression_stmt(&mut self) -> Stmt {
-        let value: Expr = self.expression();
+        let value = self.expression();
         self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
         return Stmt::Expression(Box::new(value));
     }
@@ -121,7 +119,7 @@ impl Parser {
             return Expr::Literal(Object::Boolean(false));
         }
         if self.compare(vec![TokenType::True]) {
-            return Expr::Literal(Object::Boolean(false));
+            return Expr::Literal(Object::Boolean(true));
         }
         if self.compare(vec![TokenType::Nil]) {
             return Expr::Literal(Object::Nil);

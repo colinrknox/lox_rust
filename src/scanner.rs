@@ -18,7 +18,6 @@ pub struct Scanner {
 
 impl Scan for Scanner {
     fn scan_tokens(&mut self) -> Tokens {
-        println!("{}", self.code);
         while !self.is_finished() {
             self.start = self.current;
             self.scan_token();

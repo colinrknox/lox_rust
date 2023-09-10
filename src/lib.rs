@@ -1,11 +1,10 @@
 use crate::{
-    ast::eval,
     lox::Lox,
     scanner::{Scan, Scanner},
     token::Tokens,
 };
 
-use ast::{eval_stmt, Stmt};
+use ast::{eval_stmt, Expr, Object, Stmt};
 use parser::Parser;
 use std::{
     fs,
@@ -29,8 +28,7 @@ pub fn stdin_interactive() {
         if buffer == "exit\n" {
             break;
         }
-        if let Ok(tokens) = run(buffer.clone()) {
-            println!("{}", tokens);
+        if let Ok(_tokens) = run(buffer.clone()) {
         } else {
             println!("Error");
             process::exit(69);
@@ -67,8 +65,8 @@ fn run(code: String) -> Result<Tokens, String> {
     Ok(t)
 }
 
-fn execute(stmt: Stmt) {
-    eval_stmt(stmt);
+fn execute(stmt: Stmt) -> Result<Object, Expr> {
+    Ok(eval_stmt(stmt)?)
 }
 
 pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Tokens, String> {
