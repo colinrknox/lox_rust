@@ -1,4 +1,5 @@
 use core::fmt::{Display, Formatter, Result};
+use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
@@ -48,35 +49,94 @@ pub enum TokenType {
     Error,
 }
 
-pub fn keyword_map(keyword: String) -> TokenType {
-    match keyword.as_str() {
-        "or" => TokenType::Or,
-        "and" => TokenType::And,
-        "fn" => TokenType::Fn,
-        "class" => TokenType::Class,
-        "else" => TokenType::Else,
-        "false" => TokenType::False,
-        "true" => TokenType::True,
-        "for" => TokenType::For,
-        "if" => TokenType::If,
-        "nil" => TokenType::Nil,
-        "print" => TokenType::Print,
-        "return" => TokenType::Return,
-        "super" => TokenType::Super,
-        "this" => TokenType::This,
-        "var" => TokenType::Var,
-        "while" => TokenType::While,
-        _ => TokenType::Identifier(keyword),
+impl FromStr for TokenType {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::result::Result<TokenType, ()> {
+        match s {
+            "or" => Ok(TokenType::Or),
+            "and" => Ok(TokenType::And),
+            "fn" => Ok(TokenType::Fn),
+            "class" => Ok(TokenType::Class),
+            "else" => Ok(TokenType::Else),
+            "false" => Ok(TokenType::False),
+            "true" => Ok(TokenType::True),
+            "for" => Ok(TokenType::For),
+            "if" => Ok(TokenType::If),
+            "nil" => Ok(TokenType::Nil),
+            "print" => Ok(TokenType::Print),
+            "return" => Ok(TokenType::Return),
+            "super" => Ok(TokenType::Super),
+            "this" => Ok(TokenType::This),
+            "var" => Ok(TokenType::Var),
+            "while" => Ok(TokenType::While),
+            _ => Ok(TokenType::Identifier(s.to_string())),
+        }
+    }
+}
+
+impl Display for TokenType {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{:?}", self)
     }
 }
 
 pub struct Tokens(Vec<Token>);
+
+impl Tokens {
+    pub fn new() -> Tokens {
+        Tokens(Vec::new())
+    }
+
+    pub fn push(&mut self, token: Token) {
+        self.0.push(token)
+    }
+
+    pub fn clone(&self) -> Tokens {
+        Tokens(self.0.clone())
+    }
+}
+
+impl Display for Tokens {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        self.0.iter().fold(Ok(()), |result, token| {
+            result.and_then(|_| writeln!(f, "{}", token))
+        })
+    }
+}
+
+impl std::ops::Index<usize> for Tokens {
+    type Output = Token;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
     pub line: usize,
+}
+
+impl Token {
+    pub fn new(token_type: TokenType, lexeme: String, line: usize) -> Token {
+        Token {
+            token_type,
+            lexeme,
+            line,
+        }
+    }
+
+    pub fn get_lexeme(&self) -> String {
+        return self.lexeme.clone();
+    }
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{} {} {}", self.token_type, self.lexeme, self.line)
+    }
 }
 
 pub struct TokenBuilder {
@@ -115,60 +175,5 @@ impl TokenBuilder {
     pub fn line(mut self, line: usize) -> TokenBuilder {
         self.line = line;
         self
-    }
-}
-
-impl Tokens {
-    pub fn new() -> Tokens {
-        Tokens(Vec::new())
-    }
-
-    pub fn push(&mut self, token: Token) {
-        self.0.push(token)
-    }
-
-    pub fn clone(&self) -> Tokens {
-        Tokens(self.0.clone())
-    }
-}
-
-impl std::ops::Index<usize> for Tokens {
-    type Output = Token;
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
-    }
-}
-
-impl Token {
-    pub fn new(token_type: TokenType, lexeme: String, line: usize) -> Token {
-        Token {
-            token_type,
-            lexeme,
-            line,
-        }
-    }
-
-    pub fn get_lexeme(&self) -> String {
-        return self.lexeme.clone();
-    }
-}
-
-impl Display for Tokens {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        self.0.iter().fold(Ok(()), |result, token| {
-            result.and_then(|_| writeln!(f, "{}", token))
-        })
-    }
-}
-
-impl Display for TokenType {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Display for Token {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{} {} {}", self.token_type, self.lexeme, self.line)
     }
 }

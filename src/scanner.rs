@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use crate::{lox::Lox, token::TokenBuilder};
 
-use super::token::{keyword_map, Token, TokenType, Tokens};
+use super::token::{Token, TokenType, Tokens};
 
 pub trait Scan {
     fn scan_tokens(&mut self) -> Tokens;
@@ -52,27 +54,50 @@ impl Scanner {
     fn scan_token(&mut self) {
         let c = self.advance();
         if c.is_ascii_whitespace() {
-            if c == '\n' {
-                self.line += 1;
-            }
+            self.handle_new_line(c);
             return;
         }
         if c == '/' && self.match_char('/') {
-            self.current += 1;
-            while self.peek() != '\n' && !self.is_finished() {
-                self.advance();
-            }
+            self.handle_comment_line();
             return;
         } else if c == '/' && self.match_char('*') {
-            self.current += 1;
-            while self.peek() != '*' && !self.match_char('/') && !self.is_finished() {
-                self.advance();
-            }
-            self.advance();
-            self.advance();
+            self.handle_multiline_comment();
             return;
         }
-        let token = match c {
+        let token = self.create_token_from_char(c);
+        self.tokens.push(token);
+    }
+
+    fn handle_new_line(&mut self, c: char) {
+        if is_new_line(c) {
+            self.line += 1;
+        }
+    }
+}
+
+fn is_new_line(c: char) -> bool {
+    c == '\n'
+}
+
+impl Scanner {
+    fn handle_comment_line(&mut self) {
+        self.current += 1;
+        while self.peek() != '\n' && !self.is_finished() {
+            self.advance();
+        }
+    }
+
+    fn handle_multiline_comment(&mut self) {
+        self.current += 1;
+        while self.peek() != '*' && !self.match_char('/') && !self.is_finished() {
+            self.advance();
+        }
+        self.advance();
+        self.advance();
+    }
+
+    fn create_token_from_char(&mut self, c: char) -> Token {
+        match c {
             '(' => self.create_token(TokenType::LeftParen),
             ')' => self.create_token(TokenType::RightParen),
             '{' => self.create_token(TokenType::LeftBrace),
@@ -116,7 +141,7 @@ impl Scanner {
             _ => {
                 if c.is_ascii_digit() {
                     self.number()
-                } else if self.is_alpha(c) {
+                } else if is_name_char(c) {
                     self.identifier()
                 } else {
                     self.errors
@@ -124,20 +149,43 @@ impl Scanner {
                     self.create_token(TokenType::Error)
                 }
             }
-        };
-        self.tokens.push(token);
+        }
     }
 
-    fn is_alpha(&self, c: char) -> bool {
-        c.is_ascii_alphabetic() || c == '_'
+    fn create_token(&self, token_type: TokenType) -> Token {
+        let text = self.code[self.start..self.current].to_string();
+        create_token(token_type, text, self.line)
     }
+}
 
+fn create_token(token_type: TokenType, lexeme: String, line: usize) -> Token {
+    // let text = self.code[self.start..self.current].to_string();
+    TokenBuilder::new()
+        .token_type(token_type)
+        .lexeme(lexeme)
+        .line(line)
+        .build()
+}
+
+fn is_name_char(c: char) -> bool {
+    c.is_ascii_alphabetic() || c == '_'
+}
+
+impl Scanner {
     fn identifier(&mut self) -> Token {
         while self.peek().is_ascii_alphabetic() {
             self.advance();
         }
-        let word: String = self.code[self.start..self.current].to_string();
-        self.create_token(keyword_map(word))
+        let word: &str = &self.code[self.start..self.current];
+        if let Ok(token_type) = TokenType::from_str(word) {
+            self.create_token(token_type)
+        } else {
+            println!(
+                "This should never happen, error creating token type from string value {}",
+                word
+            );
+            self.create_token(TokenType::Error)
+        }
     }
 
     fn number(&mut self) -> Token {
@@ -171,15 +219,6 @@ impl Scanner {
         self.advance();
         let value: String = self.code[self.start + 1..self.current - 1].to_string();
         return self.create_token(TokenType::String(value));
-    }
-
-    fn create_token(&self, token_type: TokenType) -> Token {
-        let text = self.code[self.start..self.current].to_string();
-        TokenBuilder::new()
-            .token_type(token_type)
-            .lexeme(text)
-            .line(self.line)
-            .build()
     }
 
     fn match_char(&mut self, expected: char) -> bool {
