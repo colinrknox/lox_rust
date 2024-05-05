@@ -11,7 +11,6 @@ use std::{
     io::{self, Write},
     process,
 };
-use wasm_bindgen::prelude::*;
 
 pub mod ast;
 pub mod lox;
@@ -80,19 +79,4 @@ pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Tokens, String> {
         return Err(format!("{}", error));
     }
     Ok(tokens)
-}
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
-
-#[wasm_bindgen]
-pub fn web_run(prompt: String) -> String {
-    log("In web_run()");
-    match run(prompt) {
-        Ok(tokens) => format!("{}", tokens),
-        Err(msg) => msg,
-    }
 }
