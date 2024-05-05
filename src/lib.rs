@@ -5,7 +5,7 @@ use crate::{
 };
 
 use ast::{eval_stmt, Expr, Object, Stmt};
-use parser::Parser;
+use parser::{Parse, Parser};
 use std::{
     fs,
     io::{self, Write},
