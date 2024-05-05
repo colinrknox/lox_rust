@@ -5,6 +5,10 @@ use super::token::Token;
 
 type Result<T> = std::result::Result<T, ParseError>;
 
+pub trait Parse {
+    fn parse(&mut self) -> Vec<Stmt>;
+}
+
 struct ParseError {
     pub token_type: TokenType,
     pub message: String,
@@ -28,26 +32,83 @@ impl Parser {
     pub fn new(tokens: Tokens) -> Parser {
         Parser { tokens, current: 0 }
     }
+}
 
-    pub fn parse(&mut self) -> Vec<Stmt> {
+impl Parse for Parser {
+    fn parse(&mut self) -> Vec<Stmt> {
         let mut stmts = Vec::new();
         while !self.at_end() {
-            stmts.push(self.statement());
+            stmts.push(self.get_statement());
         }
         return stmts;
     }
+}
 
-    fn statement(&mut self) -> Stmt {
+impl Parser {
+    fn at_end(&self) -> bool {
+        return self.peek().token_type == TokenType::EOF;
+    }
+
+    fn get_statement(&mut self) -> Stmt {
         if self.compare(vec![TokenType::Print]) {
             return self.print_stmt();
         }
         return self.expression_stmt();
     }
 
+    fn compare(&mut self, types: Vec<TokenType>) -> bool {
+        for token_type in types {
+            if self.check(token_type) {
+                self.advance();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    fn check(&self, t: TokenType) -> bool {
+        if self.at_end() {
+            return false;
+        }
+        match t {
+            TokenType::Number(_) if matches!(self.peek().token_type, TokenType::Number(_)) => {
+                return true
+            }
+            TokenType::Number(_) => return false,
+            TokenType::String(_) if matches!(self.peek().token_type, TokenType::String(_)) => {
+                return true
+            }
+            TokenType::String(_) => return false,
+            token_type => return self.peek().token_type == token_type,
+        }
+    }
+
+    fn peek(&self) -> Token {
+        return self.tokens[self.current].clone();
+    }
+
+    fn advance(&mut self) -> Token {
+        if !self.at_end() {
+            self.current += 1;
+        }
+        return self.previous();
+    }
+
+    fn previous(&self) -> Token {
+        return self.tokens[self.current - 1].clone();
+    }
+
     fn print_stmt(&mut self) -> Stmt {
         let value = self.expression();
         self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
         return Stmt::Print(Box::new(value));
+    }
+
+    fn consume(&mut self, token_type: TokenType, message: String) -> Result<Token> {
+        if self.check(token_type.clone()) {
+            return Ok(self.advance());
+        }
+        return Err(ParseError::new(token_type, message));
     }
 
     fn expression_stmt(&mut self) -> Stmt {
@@ -141,58 +202,5 @@ impl Parser {
             "Expect ')' after expression.".to_string(),
         );
         return Expr::Grouping(Box::new(expr));
-    }
-
-    fn consume(&mut self, token_type: TokenType, message: String) -> Result<Token> {
-        if self.check(token_type.clone()) {
-            return Ok(self.advance());
-        }
-        return Err(ParseError::new(token_type, message));
-    }
-
-    fn compare(&mut self, types: Vec<TokenType>) -> bool {
-        for t in types {
-            if self.check(t) {
-                self.advance();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    fn check(&self, t: TokenType) -> bool {
-        if self.at_end() {
-            return false;
-        }
-        match t {
-            TokenType::Number(_) if matches!(self.peek().token_type, TokenType::Number(_)) => {
-                return true
-            }
-            TokenType::Number(_) => return false,
-            TokenType::String(_) if matches!(self.peek().token_type, TokenType::String(_)) => {
-                return true
-            }
-            TokenType::String(_) => return false,
-            token_type => return self.peek().token_type == token_type,
-        }
-    }
-
-    fn at_end(&self) -> bool {
-        return self.peek().token_type == TokenType::EOF;
-    }
-
-    fn advance(&mut self) -> Token {
-        if !self.at_end() {
-            self.current += 1;
-        }
-        return self.previous();
-    }
-
-    fn previous(&self) -> Token {
-        return self.tokens[self.current - 1].clone();
-    }
-
-    fn peek(&self) -> Token {
-        return self.tokens[self.current].clone();
     }
 }

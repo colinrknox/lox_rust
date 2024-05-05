@@ -148,34 +148,10 @@ impl Scanner {
             '*' => self.create_token(TokenType::Star),
             ';' => self.create_token(TokenType::Semicolon),
             '/' => self.create_token(TokenType::Slash),
-            '>' => {
-                if self.match_char('=') {
-                    self.create_token(TokenType::GreaterEqual)
-                } else {
-                    self.create_token(TokenType::Greater)
-                }
-            }
-            '<' => {
-                if self.match_char('=') {
-                    self.create_token(TokenType::LessEqual)
-                } else {
-                    self.create_token(TokenType::Less)
-                }
-            }
-            '=' => {
-                if self.match_char('=') {
-                    self.create_token(TokenType::EqualEqual)
-                } else {
-                    self.create_token(TokenType::Equal)
-                }
-            }
-            '!' => {
-                if self.match_char('=') {
-                    self.create_token(TokenType::BangEqual)
-                } else {
-                    self.create_token(TokenType::Bang)
-                }
-            }
+            '>' => self.handle_greater_than(),
+            '<' => self.handle_less_than(),
+            '=' => self.handle_equals(),
+            '!' => self.handle_bang(),
             '"' => self.string(),
             _ => {
                 if c.is_ascii_digit() {
@@ -194,6 +170,37 @@ impl Scanner {
     fn create_token(&self, token_type: TokenType) -> Token {
         let text = self.code[self.start..self.current].to_string();
         create_token(token_type, text, self.line)
+    }
+
+    fn handle_greater_than(&mut self) -> Token {
+        if self.match_char('=') {
+            self.create_token(TokenType::GreaterEqual)
+        } else {
+            self.create_token(TokenType::Greater)
+        }
+    }
+
+    fn handle_less_than(&mut self) -> Token {
+        if self.match_char('=') {
+            self.create_token(TokenType::LessEqual)
+        } else {
+            self.create_token(TokenType::Less)
+        }
+    }
+
+    fn handle_equals(&mut self) -> Token {
+        if self.match_char('=') {
+            self.create_token(TokenType::EqualEqual)
+        } else {
+            self.create_token(TokenType::Equal)
+        }
+    }
+    fn handle_bang(&mut self) -> Token {
+        if self.match_char('=') {
+            self.create_token(TokenType::BangEqual)
+        } else {
+            self.create_token(TokenType::Bang)
+        }
     }
 }
 
