@@ -25,11 +25,7 @@ impl Scan for Scanner {
             self.scan_token();
         }
 
-        let token: Token = TokenBuilder::new()
-            .token_type(TokenType::EOF)
-            .lexeme("".to_string())
-            .line(self.line)
-            .build();
+        let token = create_token(TokenType::EOF, "".to_string(), self.line);
         self.tokens.push(token);
         return self.tokens.clone();
     }
@@ -37,6 +33,15 @@ impl Scan for Scanner {
     fn get_errors(&self) -> Lox {
         return self.errors.clone();
     }
+}
+
+fn create_token(token_type: TokenType, lexeme: String, line: usize) -> Token {
+    // let text = self.code[self.start..self.current].to_string();
+    TokenBuilder::new()
+        .token_type(token_type)
+        .lexeme(lexeme)
+        .line(line)
+        .build()
 }
 
 impl Scanner {
@@ -57,11 +62,11 @@ impl Scanner {
             self.handle_new_line(c);
             return;
         }
-        if c == '/' && self.match_char('/') {
+        if self.is_comment_line(c) {
             self.handle_comment_line();
             return;
-        } else if c == '/' && self.match_char('*') {
-            self.handle_multiline_comment();
+        } else if self.is_block_comment(c) {
+            self.handle_block_comment();
             return;
         }
         let token = self.create_token_from_char(c);
@@ -80,6 +85,23 @@ fn is_new_line(c: char) -> bool {
 }
 
 impl Scanner {
+    fn is_comment_line(&mut self, c: char) -> bool {
+        c == '/' && self.match_char('/')
+    }
+
+    fn match_char(&mut self, expected: char) -> bool {
+        let curr = self.code.as_bytes()[self.current] as char;
+        if self.is_finished() || curr != expected {
+            return false;
+        }
+        self.current += 1;
+        return true;
+    }
+
+    fn is_finished(&self) -> bool {
+        self.current >= self.code.len()
+    }
+
     fn handle_comment_line(&mut self) {
         self.current += 1;
         while self.peek() != '\n' && !self.is_finished() {
@@ -87,7 +109,24 @@ impl Scanner {
         }
     }
 
-    fn handle_multiline_comment(&mut self) {
+    fn peek(&self) -> char {
+        if self.is_finished() {
+            return '\0';
+        }
+        return self.code.as_bytes()[self.current] as char;
+    }
+
+    fn advance(&mut self) -> char {
+        let res = self.code.as_bytes()[self.current] as char;
+        self.current += 1;
+        return res;
+    }
+
+    fn is_block_comment(&mut self, c: char) -> bool {
+        c == '/' && self.match_char('*')
+    }
+
+    fn handle_block_comment(&mut self) {
         self.current += 1;
         while self.peek() != '*' && !self.match_char('/') && !self.is_finished() {
             self.advance();
@@ -158,15 +197,6 @@ impl Scanner {
     }
 }
 
-fn create_token(token_type: TokenType, lexeme: String, line: usize) -> Token {
-    // let text = self.code[self.start..self.current].to_string();
-    TokenBuilder::new()
-        .token_type(token_type)
-        .lexeme(lexeme)
-        .line(line)
-        .build()
-}
-
 fn is_name_char(c: char) -> bool {
     c.is_ascii_alphabetic() || c == '_'
 }
@@ -219,31 +249,5 @@ impl Scanner {
         self.advance();
         let value: String = self.code[self.start + 1..self.current - 1].to_string();
         return self.create_token(TokenType::String(value));
-    }
-
-    fn match_char(&mut self, expected: char) -> bool {
-        let curr = self.code.as_bytes()[self.current] as char;
-        if self.is_finished() || curr != expected {
-            return false;
-        }
-        self.current += 1;
-        return true;
-    }
-
-    fn advance(&mut self) -> char {
-        let res = self.code.as_bytes()[self.current] as char;
-        self.current += 1;
-        return res;
-    }
-
-    fn is_finished(&self) -> bool {
-        self.current >= self.code.len()
-    }
-
-    fn peek(&self) -> char {
-        if self.is_finished() {
-            return '\0';
-        }
-        return self.code.as_bytes()[self.current] as char;
     }
 }
