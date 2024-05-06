@@ -65,7 +65,7 @@ fn run(code: String) -> Result<Tokens, String> {
 }
 
 fn execute(stmt: Stmt) -> Result<Object, Expr> {
-    Ok(eval_stmt(stmt)?)
+    Ok(eval_stmt(&stmt)?)
 }
 
 pub fn run_with_scanner<S: Scan>(mut scanner: S) -> Result<Tokens, String> {

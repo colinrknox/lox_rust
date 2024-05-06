@@ -127,13 +127,12 @@ pub enum Stmt {
     Print(Box<Expr>),
 }
 
-pub fn eval_stmt(stmt: Stmt) -> Result<Object, Expr> {
-    let is_print = matches!(stmt, Stmt::Print(_));
-    let expr = match &stmt {
-        Stmt::Print(e) | Stmt::Expression(e) => e,
+pub fn eval_stmt(stmt: &Stmt) -> Result<Object, Expr> {
+    let expr: &Expr = match stmt {
+        Stmt::Print(e) | Stmt::Expression(e) => e.as_ref(),
     };
-    let result = eval((**expr).clone())?;
-    if is_print {
+    let result = eval(expr.clone())?;
+    if let Stmt::Print(_) = &stmt {
         println!("{}", result);
     }
     Ok(result)
