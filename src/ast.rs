@@ -94,17 +94,23 @@ fn eval_binary(lhs: Expr, op: Token, rhs: Expr) -> Result<Object, Expr> {
 
 fn eval_unary(token: Token, expr: Expr) -> Result<Object, Expr> {
     let res = eval(expr.clone())?;
-    match token.token_type {
-        TokenType::Minus if matches!(res, Object::Number(_)) => {
-            if let Object::Number(n) = res {
-                Ok(Object::Number(-1.0 * n))
-            } else {
-                Err(expr)
-            }
-        }
-        TokenType::Bang => Ok(Object::Boolean(!is_truthy(res))),
+    match (&token.token_type, &res) {
+        (TokenType::Minus, Object::Number(_)) => eval_negative(res, expr),
+        (TokenType::Bang, Object::Number(_)) => eval_bool(res),
         _ => Err(expr),
     }
+}
+
+fn eval_negative(obj: Object, expr: Expr) -> Result<Object, Expr> {
+    if let Object::Number(n) = obj {
+        Ok(Object::Number(-1.0 * n))
+    } else {
+        Err(expr)
+    }
+}
+
+fn eval_bool(obj: Object) -> Result<Object, Expr> {
+    Ok(Object::Boolean(!is_truthy(obj)))
 }
 
 fn is_truthy(obj: Object) -> bool {
@@ -122,10 +128,12 @@ pub enum Stmt {
 }
 
 pub fn eval_stmt(stmt: Stmt) -> Result<Object, Expr> {
-    let result = eval(match stmt.clone() {
-        Stmt::Print(e) | Stmt::Expression(e) => *e,
-    })?;
-    if let Stmt::Print(_) = stmt {
+    let is_print = matches!(stmt, Stmt::Print(_));
+    let expr = match &stmt {
+        Stmt::Print(e) | Stmt::Expression(e) => e,
+    };
+    let result = eval((**expr).clone())?;
+    if is_print {
         println!("{}", result);
     }
     Ok(result)
