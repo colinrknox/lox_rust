@@ -18,14 +18,6 @@ pub struct Chunk {
     capacity: usize,
 }
 
-/// Implementation for creating a dynamic byte code array
-///
-/// ```
-/// let chunk = Chunk::init();
-/// chunk.write(4);
-/// assert_eq!(chunk.code[0], 4);
-/// ```
-///
 impl Chunkable for Chunk {
     fn init() -> Chunk {
         Chunk {
@@ -68,5 +60,49 @@ impl Drop for Chunk {
             let layout = Layout::array::<u8>(self.capacity).unwrap();
             reallocate(self.code, self.capacity, 0);
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_chunk_init() {
+        let chunk = Chunk::init();
+        assert_eq!(chunk.code, null_mut());
+    }
+
+    #[test]
+    fn test_chunk_write_value() {
+        let mut chunk = init_chunk();
+        unsafe {
+            assert_eq!(*chunk.code.add(0), 5);
+        }
+    }
+
+    #[test]
+    fn test_chunk_write_count() {
+        let mut chunk = init_chunk();
+        assert_eq!(chunk.count, 1);
+    }
+
+    #[test]
+    fn test_chunk_write_capacity() {
+        let mut chunk = init_chunk();
+        assert_eq!(chunk.capacity, 8);
+    }
+
+    #[test]
+    fn test_chunk_free() {
+        let mut chunk = init_chunk();
+        chunk.free();
+        assert_eq!(chunk.code, null_mut());
+    }
+
+    fn init_chunk() -> Chunk {
+        let mut chunk = Chunk::init();
+        chunk.write(5);
+        return chunk;
     }
 }
