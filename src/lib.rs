@@ -13,6 +13,7 @@ use std::{
 };
 
 pub mod ast;
+pub mod clox;
 pub mod lox;
 pub mod parser;
 pub mod scanner;

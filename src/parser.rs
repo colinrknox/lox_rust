@@ -37,18 +37,18 @@ impl Parser {
 impl Parse for Parser {
     fn parse(&mut self) -> Vec<Stmt> {
         let mut stmts = Vec::new();
-        while !self.at_end() {
+        while !at_eof(self.peek_type()) {
             stmts.push(self.get_statement());
         }
         return stmts;
     }
 }
 
-impl Parser {
-    fn at_end(&self) -> bool {
-        return self.peek().token_type == TokenType::EOF;
-    }
+fn at_eof(token_type: &TokenType) -> bool {
+    *token_type == TokenType::EOF
+}
 
+impl Parser {
     fn get_statement(&mut self) -> Stmt {
         if self.compare(vec![TokenType::Print]) {
             return self.print_stmt();
@@ -67,7 +67,7 @@ impl Parser {
     }
 
     fn check(&self, t: TokenType) -> bool {
-        if self.at_end() {
+        if at_eof(&self.peek_type()) {
             return false;
         }
         match t {
@@ -83,12 +83,16 @@ impl Parser {
         }
     }
 
-    fn peek(&self) -> Token {
-        return self.tokens[self.current].clone();
+    fn peek_type(&self) -> &TokenType {
+        return &self.peek().token_type;
+    }
+
+    fn peek(&self) -> &Token {
+        return &self.tokens[self.current];
     }
 
     fn advance(&mut self) -> Token {
-        if !self.at_end() {
+        if !at_eof(&self.peek().token_type) {
             self.current += 1;
         }
         return self.previous();
