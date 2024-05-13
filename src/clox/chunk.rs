@@ -1,8 +1,4 @@
-use std::{
-    alloc::{alloc, dealloc, realloc, Layout},
-    process,
-    ptr::{self, copy_nonoverlapping, null_mut},
-};
+use std::{alloc::Layout, ptr::null_mut};
 
 use super::memory::{grow_capacity, reallocate};
 
@@ -22,6 +18,14 @@ pub struct Chunk {
     capacity: usize,
 }
 
+/// Implementation for creating a dynamic byte code array
+///
+/// ```
+/// let chunk = Chunk::init();
+/// chunk.write(4);
+/// assert_eq!(chunk.code[0], 4);
+/// ```
+///
 impl Chunkable for Chunk {
     fn init() -> Chunk {
         Chunk {
@@ -35,20 +39,22 @@ impl Chunkable for Chunk {
         if self.is_at_capacity() {
             self.resize();
         }
-        self.code[self.count] = byte;
+        unsafe {
+            *self.code.add(self.count) = byte;
+        }
         self.count += 1;
     }
 
     fn free(&mut self) {
         *self = Chunk::init();
     }
-
-    fn is_at_capacity(&self) -> bool {
-        self.capacity < self.count + 1
-    }
 }
 
 impl Chunk {
+    fn is_at_capacity(&self) -> bool {
+        self.capacity < self.count + 1
+    }
+
     fn resize(&mut self) {
         let old_capacity = self.capacity;
         self.capacity = grow_capacity(self.capacity);
@@ -60,7 +66,7 @@ impl Drop for Chunk {
     fn drop(&mut self) {
         if !self.code.is_null() {
             let layout = Layout::array::<u8>(self.capacity).unwrap();
-            self.reallocate(code, self.capacity, 0);
+            reallocate(self.code, self.capacity, 0);
         }
     }
 }

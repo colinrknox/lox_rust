@@ -1,4 +1,8 @@
-use std::ptr::null_mut;
+use std::{
+    alloc::{realloc, Layout},
+    process,
+    ptr::null_mut,
+};
 
 pub fn grow_capacity(capacity: usize) -> usize {
     if capacity < 8 {
@@ -14,8 +18,9 @@ pub fn reallocate(code: *mut u8, old_size: usize, new_size: usize) -> *mut u8 {
         return null_mut();
     }
 
+    let ptr;
     unsafe {
-        let ptr = realloc(code, layout, new_size);
+        ptr = realloc(code, layout, new_size);
     }
     if ptr == null_mut() {
         println!("Failed to realloc space");
