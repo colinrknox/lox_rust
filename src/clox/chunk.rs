@@ -1,4 +1,4 @@
-use std::{alloc::Layout, ptr::null_mut};
+use std::ptr::null_mut;
 
 use super::memory::{grow_capacity, reallocate};
 
@@ -10,12 +10,31 @@ pub trait Chunkable {
 
 pub enum OpCode {
     OpReturn,
+    Unknown,
+}
+
+impl std::convert::From<u8> for OpCode {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => OpCode::OpReturn,
+            _ => OpCode::Unknown,
+        }
+    }
+}
+
+impl std::convert::Into<u8> for OpCode {
+    fn into(self) -> u8 {
+        match self {
+            OpCode::OpReturn => 0,
+            OpCode::Unknown => 100,
+        }
+    }
 }
 
 pub struct Chunk {
-    code: *mut u8,
-    count: usize,
-    capacity: usize,
+    pub code: *mut u8,
+    pub count: usize,
+    pub capacity: usize,
 }
 
 impl Chunkable for Chunk {
@@ -57,7 +76,6 @@ impl Chunk {
 impl Drop for Chunk {
     fn drop(&mut self) {
         if !self.code.is_null() {
-            let layout = Layout::array::<u8>(self.capacity).unwrap();
             reallocate(self.code, self.capacity, 0);
         }
     }
@@ -75,7 +93,7 @@ mod test {
 
     #[test]
     fn test_chunk_write_value() {
-        let mut chunk = init_chunk();
+        let chunk: Chunk = init_chunk();
         unsafe {
             assert_eq!(*chunk.code.add(0), 5);
         }
@@ -83,13 +101,13 @@ mod test {
 
     #[test]
     fn test_chunk_write_count() {
-        let mut chunk = init_chunk();
+        let chunk = init_chunk();
         assert_eq!(chunk.count, 1);
     }
 
     #[test]
     fn test_chunk_write_capacity() {
-        let mut chunk = init_chunk();
+        let chunk = init_chunk();
         assert_eq!(chunk.capacity, 8);
     }
 
