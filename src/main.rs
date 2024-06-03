@@ -1,7 +1,5 @@
 use clox;
 use jlox;
-use std::io::{self, Write};
-pub(crate) use std::{fs, process};
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();
