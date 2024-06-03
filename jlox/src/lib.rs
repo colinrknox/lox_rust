@@ -28,9 +28,18 @@ fn run(code: String) {
     let mut scanner = Scanner::new(&code);
     let tokens = scanner.scan_tokens();
 
-    for token in tokens {
-        println!("{token}");
-    }
+    match tokens {
+        Ok(tokens) => {
+            for token in tokens {
+                println!("{token}");
+            }
+        }
+        Err(errors) => {
+            for e in errors {
+                error(e.token.line, format!("{} {}\n", e.message, e.token.lexeme));
+            }
+        }
+    };
 }
 
 fn error(line: usize, message: String) {

@@ -82,9 +82,9 @@ impl FromStr for TokenType {
 
 #[derive(Debug, Clone)]
 pub struct Token {
-    token_type: TokenType,
-    lexeme: String,
-    line: usize,
+    pub token_type: TokenType,
+    pub lexeme: String,
+    pub line: usize,
 }
 
 impl Token {
@@ -103,9 +103,32 @@ impl fmt::Display for Token {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct ErrorToken {
+    pub token: Token,
+    pub message: String,
+}
+
+impl fmt::Display for ErrorToken {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{} {} {}",
+            self.token.token_type, self.token.lexeme, self.token.line
+        )
+    }
+}
+
+impl ErrorToken {
+    pub fn new(token: Token, message: String) -> ErrorToken {
+        ErrorToken { token, message }
+    }
+}
+
 pub struct Scanner<'a> {
     code: &'a String,
     tokens: Vec<Token>,
+    errors: Vec<ErrorToken>,
     line: usize,
     start: usize,
     current: usize,
@@ -116,6 +139,7 @@ impl<'a> Scanner<'a> {
         Scanner {
             code,
             tokens: vec![],
+            errors: vec![],
             line: 1,
             start: 0,
             current: 0,
@@ -124,7 +148,7 @@ impl<'a> Scanner<'a> {
 }
 
 impl Scanner<'_> {
-    pub fn scan_tokens(&mut self) -> Vec<Token> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<ErrorToken>> {
         while self.is_not_finished() {
             self.start = self.current;
             self.scan_token();
@@ -132,7 +156,12 @@ impl Scanner<'_> {
 
         self.tokens
             .push(Token::new(TokenType::EOF, "".to_string(), self.line));
-        return self.tokens.clone();
+
+        if self.errors.is_empty() {
+            Ok(self.tokens.clone())
+        } else {
+            Err(self.errors.clone())
+        }
     }
 
     fn is_not_finished(&self) -> bool {
@@ -147,6 +176,7 @@ impl Scanner<'_> {
         let c = self.advance();
         match c {
             '\n' => self.line += 1,
+            '\r' | '\t' | ' ' => (),
             '(' => self.add_token(TokenType::LeftParen),
             ')' => self.add_token(TokenType::RightParen),
             '{' => self.add_token(TokenType::LeftBrace),
@@ -158,8 +188,15 @@ impl Scanner<'_> {
             '*' => self.add_token(TokenType::Star),
             ';' => self.add_token(TokenType::Semicolon),
             '/' if self.match_char('/') => {
-                self.current += 1;
                 while self.peek() != '\n' && self.is_not_finished() {
+                    self.advance();
+                }
+            }
+            '/' if self.match_char('*') => {
+                while self.peek() != '*' && self.peek_next() != '/' && self.is_not_finished() {
+                    if self.peek() == '\n' {
+                        self.line += 1;
+                    }
                     self.advance();
                 }
             }
@@ -179,7 +216,7 @@ impl Scanner<'_> {
                 } else if self.is_name_char(c) {
                     self.identifier()
                 } else {
-                    self.add_token(TokenType::Error)
+                    self.add_error()
                 }
             }
         };
@@ -192,9 +229,19 @@ impl Scanner<'_> {
     }
 
     fn add_token(&mut self, token_type: TokenType) {
+        self.tokens.push(self.get_token(token_type))
+    }
+
+    fn add_error(&mut self) {
+        self.errors.push(ErrorToken::new(
+            self.get_token(TokenType::Error),
+            "Unexpected character".to_string(),
+        ))
+    }
+
+    fn get_token(&self, token_type: TokenType) -> Token {
         let text = self.code[self.start..self.current].to_string();
-        let token = Token::new(token_type, text, self.line);
-        self.tokens.push(token)
+        Token::new(token_type, text, self.line)
     }
 
     fn match_char(&mut self, expected: char) -> bool {
