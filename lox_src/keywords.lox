@@ -1,17 +1,11 @@
-if else var fn
+if else var fun
 
 var myVar
 
-fn myFunc()
+fun myFunc()
 
 class false true nil
 
 print return super this
 
-/* Multiline comment */
-
-/* Acutally using
-multiple lines now
-
-comment done
-*/
+// comment
