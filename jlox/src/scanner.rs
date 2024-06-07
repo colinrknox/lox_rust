@@ -1,6 +1,6 @@
 use std::{fmt, str::FromStr};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -292,6 +292,7 @@ impl Scanner<'_> {
         }
         return self.code.as_bytes()[self.current + 1] as char;
     }
+
     fn is_name_char(&self, c: char) -> bool {
         c.is_ascii_alphabetic() || c == '_'
     }
@@ -305,10 +306,10 @@ impl Scanner<'_> {
             self.add_token(token_type)
         } else {
             println!(
-                "This should never happen, error creating token type from string value {}",
+                "This should never happen, error creating token type from lexeme: {}",
                 word
             );
-            self.add_token(TokenType::Error)
+            self.add_error()
         };
     }
 }

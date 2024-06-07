@@ -2,8 +2,11 @@ use std::fs;
 use std::io;
 use std::io::Write;
 
+use parser::RecursiveParser;
+use parser::Visitor;
 use scanner::Scanner;
 
+pub mod parser;
 pub mod scanner;
 
 pub fn stdin_interactive() {
@@ -30,8 +33,13 @@ fn run(code: String) {
 
     match tokens {
         Ok(tokens) => {
+            let mut parser = RecursiveParser::new(tokens.clone());
             for token in tokens {
                 println!("{token}");
+            }
+            match parser.expression() {
+                Ok(expr) => println!("{}", expr.visit_print()),
+                Err(_) => println!("Parsing error"),
             }
         }
         Err(errors) => {
